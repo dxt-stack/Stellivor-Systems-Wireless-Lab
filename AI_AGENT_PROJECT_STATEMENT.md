@@ -2,7 +2,7 @@
 
 **Purpose:** Give a future AI coding agent the product brief, current implementation state, non-negotiable scope, QA evidence, and release process needed to continue STELLIVOR safely and coherently.
 
-**Current release:** 0.5.3  
+**Current release:** 0.6.0  
 **Project name:** STELLIVOR // Systems & Wireless Lab  
 **Current runtime baseline:** Python 3.10+; standard-library-only core  
 **Current release date:** 2026-11-05
@@ -26,7 +26,9 @@ The current implementation includes:
 - A defensive Wireless Security Lab: local rough test-phrase estimate, router-hardening checklist, permitted wireless snapshot, and safe owner recovery guidance.
 - Tool-presence discovery that does not claim hardware or feature verification.
 - Manual local JSON/Markdown report export with privacy guidance.
+- Direct JSON-capable CLI commands and read-only authorized ADB/device readiness reporting.
 - Responsive terminal UI, themes (`stellivor`, `ember`, `ice`), semantic result colors, bounded line-by-line result reveal, `--fast-output`, ASCII/no-color fallbacks, a live local clock, dragon selection cue, and a pause control for scrollback.
+- Interactive help, command palette, rerun, export, and quit shortcuts while preserving numbered navigation.
 
 ### Reviewed WiFi Inspector reuse
 
@@ -56,6 +58,8 @@ Safe concepts from the user-supplied WiFi Inspector archive were incorporated: w
 
 - `stellivor/` — core results, adapters, diagnostics, UI, and terminal rendering.
 - `stellivor/ui.py` — menu, live clock/pause control, paced output, themes, and dragon/emblem rendering.
+- `stellivor/cli.py` — direct machine-readable command interface.
+- `stellivor/device.py` — read-only ADB/device readiness; no unlock, brute force, remote shell, payload, or data extraction.
 - `stellivor/brandmark.py` — pre-sampled emblem data; no runtime imaging library.
 - `assets/` — original dragon-and-star artwork.
 - `tests/` — deterministic unit and regression tests.
@@ -75,9 +79,9 @@ python main.py --system-json
 printf '0\n' | python main.py --no-color --no-animation
 ```
 
-Current release QA recorded **72 passing deterministic tests**. It also passed system-JSON/menu smoke checks, archive CRC/extraction tests, and a pseudo-terminal test confirming: (1) the clock ticks in real time, (2) pausing causes no terminal writes during the measured wait, and (3) resuming restores the ticker. The test workspace was Linux with Python 3.13.16; pseudo-terminal tests are not a substitute for actual Termux visual testing.
+Current release QA recorded **75 passing deterministic tests**. It also passed direct JSON CLI/system/menu smoke checks and a pseudo-terminal test confirming: (1) the clock ticks in real time, (2) pausing causes no terminal writes during the measured wait, and (3) resuming restores the ticker. The test workspace was Linux; pseudo-terminal tests are not a substitute for actual Termux visual testing.
 
-A user screenshot confirms **0.4.0** ran in Android/Termux with Python 3.14.8. The live-clock, pause-for-scrollback control, and brighter colors in 0.5.3 have not yet been visually confirmed on that phone. Never describe this release as device-tested until the user confirms it.
+A user screenshot confirms **0.4.0** ran in Android/Termux with Python 3.14.8. The 0.6.0 shell shortcuts and ADB readiness check have not yet been visually confirmed on that phone. Never describe this release as device-tested until the user confirms it.
 
 ## Release artifacts and handoff
 
@@ -90,7 +94,7 @@ A user screenshot confirms **0.4.0** ran in Android/Termux with Python 3.14.8. T
 
 ## Suggested next work
 
-1. Ask the user to test 0.5.3 in Termux, especially the live clock, `P` pause/resume, scrolling after pause, and brighter emblem under their actual color profile.
+1. Ask the user to test 0.6.0 in Termux, especially the live clock, `P` pause/resume, command palette, direct commands, and ADB readiness under their actual environment.
 2. Fix only reproducible issues; keep the pause control simple and avoid periodic writes while paused.
 3. Continue strengthening deterministic tests and capability-aware output without expanding the defensive scope.
 4. Keep the README, tests, platform-support status, and release artifacts synchronized with every change.

@@ -15,7 +15,9 @@ STELLIVOR separates a shared Python core from a replaceable terminal interface. 
 - `stellivor/sdr.py`: synthetic IQ and deterministic educational signal analysis only.
 - `stellivor/security_lab.py`: defensive local passphrase heuristic and router-hardening guidance; no key extraction or cracking.
 - `stellivor/tools.py`: optional executable discovery without claiming functionality/hardware verification.
+- `stellivor/device.py`: read-only ADB version/device inventory and authorized-device readiness; no arbitrary remote commands or state changes.
 - `stellivor/reports.py`: local JSON/Markdown reports and atomic file writes.
+- `stellivor/cli.py`: direct JSON-capable command interface for scripts and Termux shell workflows.
 - `stellivor/ui.py`: responsive menus, RGB emblem rendering, outlined wordmark, TTY-only startup/selection animations, prompts, and result presentation.
 - `stellivor/brandmark.py`: pre-sampled pixels from the bundled emblem; avoids an on-device imaging dependency.
 
@@ -26,6 +28,8 @@ STELLIVOR separates a shared Python core from a replaceable terminal interface. 
 The terminal emblem is rendered from pre-sampled pixels of the bundled image; its colors are brightened and saturated for true-colour ANSI/Braille output, with a lifted grayscale/ASCII fallback. The wordmark uses outlined strokes and adapts to narrow terminals. On interactive terminals the startup clock uses actual local time and includes timezone/UTC offset; while the landing menu waits for input, it refreshes each second and visibly rolls through minutes and hours. At the menu, `P` + Enter pauses/resumes the ticker; a pause stops periodic terminal writes to allow scrollback. Valid operation selections progressively reveal their short label across four frames beside the dragon mark before opening/running; the transition is bounded to about 0.18 seconds. `--no-animation` disables motion and live ticking. Interactive results are revealed line by line with a per-result delay cap; `--fast-output` disables pacing. ANSI palettes are selectable. No network/radio/hardware scan runs before the user selects an action. The one-choice quick-audit bundle is read-only and omits DNS/TCP probing and Wi-Fi scans.
 
 The high-resolution dragon-and-star logo remains in `assets/`; `stellivor/brandmark.py` contains the compact terminal raster. Runtime needs no imaging library.
+
+The interactive UI keeps numbered navigation and adds help, command-palette, rerun, export, and quit shortcuts. Direct CLI mode uses the same `Result` contract as the interactive UI, so missing dependencies and permission restrictions remain explicit rather than being presented as successful operations.
 
 ## Result contract
 

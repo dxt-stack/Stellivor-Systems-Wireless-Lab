@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.6.0 — 2026-11-05
+
+Terminal workbench and authorized-device readiness upgrade.
+
+- Added direct, JSON-capable command mode for system, network, file, integrity, SDR, wireless, connections, tools, and device operations.
+- Added interactive `?`, `/`, `r`, `e`, and `q` shortcuts while preserving numbered navigation and no-startup-scan behavior.
+- Added real read-only ADB/device readiness reporting with explicit missing, pending-authorization, no-device, and authorized states.
+- Reviewed `tegal1337/CiLocks` and recorded the safe integration/license boundary; lockscreen bypass, PIN brute force, payloads, spyware, credential extraction, and exploit workflows remain excluded.
+
 ## 0.5.3 — 2026-11-05
 
 Scrollback usability refinement for the live menu clock.

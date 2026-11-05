@@ -1,6 +1,6 @@
 # STELLIVOR // SYSTEMS & WIRELESS LAB — PROJECT HANDOVER
 
-**Current release:** 0.5.3  
+**Current release:** 0.6.0  
 **Project status:** Implemented, packaged, and locally tested. The 0.5.3 live-clock ticking and brighter emblem have not yet been visually confirmed on the user's Termux device.
 
 ## Purpose
@@ -14,7 +14,9 @@ STELLIVOR is a dependency-light, offline-first workbench for local system diagno
 - Synthetic-only IQ generation and signal analysis; no live RF capture path.
 - Defensive wireless snapshot, rough local test-phrase estimate, router-hardening checklist, and owner recovery guidance.
 - Local report export, selected tool-presence checks, and a read-only quick audit.
+- Direct JSON-capable CLI commands and a read-only authorized ADB/device readiness check.
 - Responsive terminal UI with the original dragon-and-star emblem rendered in brighter, more saturated colors, outlined STELLIVOR wordmark, themes, actual local clock/timezone/UTC offset that ticks each second while the landing menu waits, `P` + Enter pause/resume control for scrollback, paced result lines, and a brief progressive option-label/dragon cue.
+- Interactive shortcuts for help (`?`), command palette (`/`), rerun (`r`), export (`e`), and quit (`q`).
 
 ## Wireless Inspector reuse and limits
 
@@ -39,7 +41,7 @@ python main.py --theme ember
 python main.py --fast-output --no-animation
 ```
 
-The 0.5.3 release contains 72 deterministic tests. Workspace QA covers the current CLI, non-interactive behavior, and terminal animation with controlled clocks/fake TTYs; a pseudo-terminal check observed real per-second ticks and confirmed that the pause control stops further writes. The new release still needs on-device visual confirmation in Termux. The user's supplied screenshot documents version 0.4.0 on Android/Termux with Python 3.14.8, not the new 0.5.3 UI.
+The 0.6.0 release extends the deterministic suite with ADB parsing and CLI checks. Workspace QA covers the current CLI, non-interactive behavior, and terminal animation with controlled clocks/fake TTYs; a pseudo-terminal check observed real per-second ticks and confirmed that the pause control stops further writes. The new release still needs on-device visual confirmation in Termux.
 
 ## Project layout
 

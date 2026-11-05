@@ -4,7 +4,7 @@
 
 **Stellivor** is a cross-platform, offline-first systems and wireless learning workbench. The name is a coined, Latin-inspired “star-devourer”; the literal phrase “the one who devoured a star” is *qui stellam devoravit*.
 
-Version: **0.5.3**.
+Version: **0.6.0**.
 
 **Scope, plainly:** STELLIVOR is a Python diagnostics app, not Kali Linux or NetHunter. It does not install Kali, provide root/kernel drivers, or contain hundreds of third-party tools. Its purpose is a fast, local, defensive workbench; it won't claim NetHunter-level capability.
 
@@ -17,6 +17,8 @@ python main.py --theme ember
 python main.py --theme ice --fast-output
 python main.py --no-color
 ```
+
+The shell also supports `?` for help, `/` for a command palette, `r` to rerun the last operation, `e` to export the current session, and `q` to quit. Existing numbered navigation remains available for narrow or basic Termux terminals.
 
 ## What is implemented
 
@@ -33,8 +35,25 @@ python main.py --no-color
 | Wireless Security Lab | Local rough passphrase estimate, router-hardening checklist, wireless snapshot, and safe owner recovery guidance |
 | Tool catalog | Optional executable presence checks; presence is not proof a tool or hardware works |
 | Reports | Manual, local JSON and Markdown export with privacy warnings |
+| Authorized device readiness | Real read-only ADB inventory and readiness status for devices already visible to the local ADB client; no unlock, brute force, remote shell, payload, or data extraction |
 
 No third-party Python package, root access, account, API key, telemetry, or cloud analysis is required for the core. Optional native utilities and Android permissions may affect particular features.
+
+## Direct command mode
+
+The same real operations can be used from scripts and shell pipelines without opening the animated UI:
+
+```sh
+python main.py system --json
+python main.py network interfaces --json
+python main.py network dns example.com --json
+python main.py device readiness --json
+python main.py file inspect ./examples/sample_report.json --json
+python main.py integrity verify ./examples/sample_report.json SHA256_DIGEST --json
+python main.py sdr simulate --frequency 1000 --count 1024 --json
+```
+
+`device readiness` checks the local `adb` installation, lists visible device states, distinguishes authorized from pending devices, and reports optional `scrcpy` availability. It never bypasses authentication, guesses a PIN, executes an arbitrary device shell, installs an APK, captures private data, or changes device state. See [`docs/CILOCKS_REVIEW.md`](docs/CILOCKS_REVIEW.md) for the CiLocks compatibility and licensing boundary.
 
 ## Safe WiFi Inspector reuse
 

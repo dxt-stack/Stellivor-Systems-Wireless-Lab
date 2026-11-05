@@ -18,6 +18,7 @@ from . import __version__
 from .brandmark import EMBLEM_HEIGHT, EMBLEM_ROWS, EMBLEM_WIDTH
 from .connections import list_listening_tcp
 from .core import Result, Status, detect_platform
+from .device import device_readiness
 from .file_intel import inspect_file, verify_sha256
 from .network import check_tcp, interface_information, resolve_dns, route_information
 from .reports import PRIVACY_NOTICE, save_report
@@ -142,6 +143,7 @@ class StellivorUI:
         self.unicode = "utf" in encoding.lower()
         self.results: list[Result] = []
         self.running = True
+        self.last_choice: str | None = None
 
     def _paint(self, text: str, color: str, *, bold: bool = False) -> str:
         if not self.use_color:
@@ -371,6 +373,7 @@ class StellivorUI:
             "  9   Optional tool catalog",
             " 10   Export session report",
             " 11   Quick local audit  [READ-ONLY]",
+            " 12   Authorized device readiness  [ADB / READ-ONLY]",
             "  0   Exit",
         ]
         self.write()
@@ -380,6 +383,48 @@ class StellivorUI:
             action = "pause" if self.live_clock_enabled else "resume"
             self.write(self._paint(f"  P+Enter {action} clock", self.MUTED))
         self.write(self._menu_clock_line())
+
+    def help_screen(self) -> None:
+        self.panel("NAVIGATION / REAL CAPABILITIES", [
+            "Numbers  Open an operation",
+            "?         Show this help",
+            "/         Open the command palette",
+            "r         Rerun the last operation",
+            "e         Export the current session locally",
+            "p         Pause or resume the live clock",
+            "q         Quit without uploading anything",
+            "All diagnostics run only after you choose them; no startup scan is performed.",
+        ])
+
+    def command_palette(self) -> None:
+        self.panel("COMMAND PALETTE", [
+            "system       System profile",
+            "network      Network diagnostics",
+            "wireless     Wireless snapshot",
+            "device       Authorized ADB/device readiness",
+            "file         Read-only file intelligence",
+            "integrity    SHA-256 integrity check",
+            "sdr          Synthetic SDR learning lab",
+            "audit        Quick local audit",
+            "export       Export this session locally",
+            "help         Show navigation help",
+            "Type a command name or Q to close the palette.",
+        ])
+        aliases = {"system": "1", "network": "2", "wireless": "3", "device": "12", "file": "5", "integrity": "6", "sdr": "7", "audit": "11", "export": "10", "help": "?"}
+        choice = self.input_fn("Command: ").strip().lower()
+        if choice == "q" or not choice:
+            return
+        if choice == "?":
+            self.help_screen()
+        elif choice in aliases:
+            if aliases[choice] == "?":
+                self.help_screen()
+            elif aliases[choice] == "10":
+                self.export_menu()
+            else:
+                self.dispatch(aliases[choice])
+        else:
+            self.write("Unknown command. Type / again to reopen the palette.")
 
     def _wrap(self, text: str, *, indent: str = "  ") -> list[str]:
         return textwrap.wrap(
@@ -626,17 +671,20 @@ class StellivorUI:
             "9": lambda: self.record(discover_tools()),
             "10": self.export_menu,
             "11": self.quick_local_audit,
+            "12": lambda: self.record(device_readiness()),
         }
         action = actions.get(choice)
         if action is None:
-            self.write("Unknown selection. Choose 0-11.")
+            self.write("Unknown selection. Choose 0-12, or use ?, /, r, e, or q.")
             return
         labels = {
             "1": "SYSTEM PROFILE", "2": "NETWORK DIAGNOSTICS", "3": "WIRELESS SNAPSHOT",
             "4": "LISTENING CONNECTIONS", "5": "FILE INTELLIGENCE", "6": "SHA-256 INTEGRITY",
             "7": "SDR SIMULATION", "8": "WIRELESS SECURITY", "9": "TOOL CATALOG",
             "10": "REPORT EXPORT", "11": "QUICK LOCAL AUDIT",
+            "12": "AUTHORIZED DEVICE READINESS",
         }
+        self.last_choice = choice
         self._dragon_transition(labels[choice])
         try:
             action()
@@ -651,7 +699,26 @@ class StellivorUI:
             try:
                 self.menu()
                 choice = self._menu_input()
-                if choice.casefold() == "p":
+                normalized = choice.strip().lower()
+                if normalized in {"?", "help"}:
+                    self.help_screen()
+                    continue
+                if normalized in {"/", "palette"}:
+                    self.command_palette()
+                    continue
+                if normalized == "r":
+                    if self.last_choice:
+                        self.dispatch(self.last_choice)
+                    else:
+                        self.write("No operation has been run yet.")
+                    continue
+                if normalized == "e":
+                    self.export_menu()
+                    continue
+                if normalized in {"q", "quit", "exit"}:
+                    self.running = False
+                    continue
+                if normalized == "p":
                     if self.animate:
                         self.live_clock_enabled = not self.live_clock_enabled
                         state = "paused; periodic terminal writes stopped" if not self.live_clock_enabled else "resumed"
@@ -659,7 +726,7 @@ class StellivorUI:
                     else:
                         self.write("Clock animation is disabled in this mode.")
                     continue
-                self.dispatch(choice)
+                self.dispatch(choice.strip())
             except (EOFError, KeyboardInterrupt):
                 self.write("\nInput closed. Exiting cleanly.")
                 break

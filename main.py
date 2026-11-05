@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""STELLIVOR terminal entry point."""
+"""STELLIVOR terminal entry point and direct command interface."""
 from __future__ import annotations
 
 import argparse
 import json
 
 from stellivor import __version__
+from stellivor.cli import main as run_cli
 from stellivor.system_info import collect_system_info
 from stellivor.ui import main as run_ui
 
@@ -20,10 +21,13 @@ def main() -> int:
     animation.add_argument("--animation", action="store_true", help="Enable live clock ticking and dragon cues on an interactive terminal")
     animation.add_argument("--no-animation", action="store_true", help="Keep the clock static and disable dragon transitions")
     parser.add_argument("--system-json", action="store_true", help="Print one real system profile as JSON and exit")
+    parser.add_argument("command", nargs=argparse.REMAINDER, help="Optional direct command; use `main.py device --help` for command help.")
     arguments = parser.parse_args()
     if arguments.system_json:
         print(json.dumps(collect_system_info().to_dict(), indent=2, sort_keys=True))
         return 0
+    if arguments.command:
+        return run_cli(arguments.command)
     animate = True if arguments.animation else False if arguments.no_animation else None
     return run_ui(
         use_color=False if arguments.no_color else None,
