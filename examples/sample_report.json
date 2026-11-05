@@ -1,0 +1,741 @@
+{
+  "created_utc": "2026-10-24T01:29:57Z",
+  "environment": {
+    "platform_adapter": "example_fixture",
+    "python_version": null
+  },
+  "example_note": "Illustrative fixture containing deterministic simulated IQ analysis only; not a capture or observation from the user’s device.",
+  "example_only": true,
+  "generator": {
+    "name": "STELLIVOR // Systems & Wireless Lab",
+    "version": "0.5.3"
+  },
+  "privacy_notice": "This report may contain private hostnames, IP/MAC addresses, file paths, usernames, or machine details. Review it before sharing. STELLIVOR never uploads it automatically.",
+  "result_count": 1,
+  "results": [
+    {
+      "data": {
+        "amplitude": 1.0,
+        "analysis_truncated": false,
+        "analyzed_sample_count": 256,
+        "estimated_frequency_hz": 1000.0,
+        "frequency_bin_hz": 31.25,
+        "frequency_hz": 1000.0,
+        "input_sample_count": 256,
+        "live_rf_capture": false,
+        "noise_seed": 0,
+        "noise_stddev": 0.0,
+        "normalized_frequency_cycles_per_sample": 0.125,
+        "note": "The estimate is the strongest FFT bin, not an exact frequency estimator. Non-power-of-two input is truncated to a power of two.",
+        "peak_bin": 32,
+        "positive_spectrum": [
+          {
+            "bin": 0,
+            "frequency_hz": 0.0,
+            "magnitude": 1.7946370576251274e-16
+          },
+          {
+            "bin": 1,
+            "frequency_hz": 31.25,
+            "magnitude": 5.433761534686772e-16
+          },
+          {
+            "bin": 2,
+            "frequency_hz": 62.5,
+            "magnitude": 2.871109464158684e-16
+          },
+          {
+            "bin": 3,
+            "frequency_hz": 93.75,
+            "magnitude": 3.1713229184143497e-16
+          },
+          {
+            "bin": 4,
+            "frequency_hz": 125.0,
+            "magnitude": 7.91799182496736e-16
+          },
+          {
+            "bin": 5,
+            "frequency_hz": 156.25,
+            "magnitude": 4.549638548867606e-16
+          },
+          {
+            "bin": 6,
+            "frequency_hz": 187.5,
+            "magnitude": 1.1075673345796786e-15
+          },
+          {
+            "bin": 7,
+            "frequency_hz": 218.75,
+            "magnitude": 2.583708354753746e-15
+          },
+          {
+            "bin": 8,
+            "frequency_hz": 250.0,
+            "magnitude": 3.4984058782773383e-15
+          },
+          {
+            "bin": 9,
+            "frequency_hz": 281.25,
+            "magnitude": 2.4501699614452608e-15
+          },
+          {
+            "bin": 10,
+            "frequency_hz": 312.5,
+            "magnitude": 1.0431742947216113e-15
+          },
+          {
+            "bin": 11,
+            "frequency_hz": 343.75,
+            "magnitude": 4.395933111699239e-16
+          },
+          {
+            "bin": 12,
+            "frequency_hz": 375.0,
+            "magnitude": 8.163754314224474e-16
+          },
+          {
+            "bin": 13,
+            "frequency_hz": 406.25,
+            "magnitude": 3.3588548049282477e-16
+          },
+          {
+            "bin": 14,
+            "frequency_hz": 437.5,
+            "magnitude": 1.8428997772804119e-16
+          },
+          {
+            "bin": 15,
+            "frequency_hz": 468.75,
+            "magnitude": 1.2368989809331105e-16
+          },
+          {
+            "bin": 16,
+            "frequency_hz": 500.0,
+            "magnitude": 2.51169715292468e-16
+          },
+          {
+            "bin": 17,
+            "frequency_hz": 531.25,
+            "magnitude": 6.180034493432771e-16
+          },
+          {
+            "bin": 18,
+            "frequency_hz": 562.5,
+            "magnitude": 3.4016917432416646e-16
+          },
+          {
+            "bin": 19,
+            "frequency_hz": 593.75,
+            "magnitude": 2.2454193061176444e-16
+          },
+          {
+            "bin": 20,
+            "frequency_hz": 625.0,
+            "magnitude": 2.457988510115175e-16
+          },
+          {
+            "bin": 21,
+            "frequency_hz": 656.25,
+            "magnitude": 4.079000424985351e-16
+          },
+          {
+            "bin": 22,
+            "frequency_hz": 687.5,
+            "magnitude": 4.654161842317865e-16
+          },
+          {
+            "bin": 23,
+            "frequency_hz": 718.75,
+            "magnitude": 1.2981419951566984e-16
+          },
+          {
+            "bin": 24,
+            "frequency_hz": 750.0,
+            "magnitude": 4.044319525063881e-16
+          },
+          {
+            "bin": 25,
+            "frequency_hz": 781.25,
+            "magnitude": 3.9382777934100117e-16
+          },
+          {
+            "bin": 26,
+            "frequency_hz": 812.5,
+            "magnitude": 6.456218138286911e-16
+          },
+          {
+            "bin": 27,
+            "frequency_hz": 843.75,
+            "magnitude": 6.334302036785579e-16
+          },
+          {
+            "bin": 28,
+            "frequency_hz": 875.0,
+            "magnitude": 9.914779499795747e-16
+          },
+          {
+            "bin": 29,
+            "frequency_hz": 906.25,
+            "magnitude": 1.0636651268352578e-15
+          },
+          {
+            "bin": 30,
+            "frequency_hz": 937.5,
+            "magnitude": 1.0204117211996924e-15
+          },
+          {
+            "bin": 31,
+            "frequency_hz": 968.75,
+            "magnitude": 2.575693960754342e-15
+          },
+          {
+            "bin": 32,
+            "frequency_hz": 1000.0,
+            "magnitude": 2.0000000000000013
+          },
+          {
+            "bin": 33,
+            "frequency_hz": 1031.25,
+            "magnitude": 2.5718943030592315e-15
+          },
+          {
+            "bin": 34,
+            "frequency_hz": 1062.5,
+            "magnitude": 1.0203365749620396e-15
+          },
+          {
+            "bin": 35,
+            "frequency_hz": 1093.75,
+            "magnitude": 1.0654850980044043e-15
+          },
+          {
+            "bin": 36,
+            "frequency_hz": 1125.0,
+            "magnitude": 9.80167178640619e-16
+          },
+          {
+            "bin": 37,
+            "frequency_hz": 1156.25,
+            "magnitude": 6.323958953412747e-16
+          },
+          {
+            "bin": 38,
+            "frequency_hz": 1187.5,
+            "magnitude": 6.527620215800692e-16
+          },
+          {
+            "bin": 39,
+            "frequency_hz": 1218.75,
+            "magnitude": 3.9175027020326935e-16
+          },
+          {
+            "bin": 40,
+            "frequency_hz": 1250.0,
+            "magnitude": 4.15612226556216e-16
+          },
+          {
+            "bin": 41,
+            "frequency_hz": 1281.25,
+            "magnitude": 1.3000019627648185e-16
+          },
+          {
+            "bin": 42,
+            "frequency_hz": 1312.5,
+            "magnitude": 4.739651350591192e-16
+          },
+          {
+            "bin": 43,
+            "frequency_hz": 1343.75,
+            "magnitude": 4.0736140055277044e-16
+          },
+          {
+            "bin": 44,
+            "frequency_hz": 1375.0,
+            "magnitude": 2.455470245759596e-16
+          },
+          {
+            "bin": 45,
+            "frequency_hz": 1406.25,
+            "magnitude": 2.272794602647609e-16
+          },
+          {
+            "bin": 46,
+            "frequency_hz": 1437.5,
+            "magnitude": 3.686635382649552e-16
+          },
+          {
+            "bin": 47,
+            "frequency_hz": 1468.75,
+            "magnitude": 6.195300737633633e-16
+          },
+          {
+            "bin": 48,
+            "frequency_hz": 1500.0,
+            "magnitude": 2.3964514318127403e-16
+          },
+          {
+            "bin": 49,
+            "frequency_hz": 1531.25,
+            "magnitude": 1.2268674287158112e-16
+          },
+          {
+            "bin": 50,
+            "frequency_hz": 1562.5,
+            "magnitude": 1.708929763848477e-16
+          },
+          {
+            "bin": 51,
+            "frequency_hz": 1593.75,
+            "magnitude": 3.3461641941039195e-16
+          },
+          {
+            "bin": 52,
+            "frequency_hz": 1625.0,
+            "magnitude": 7.865933716695476e-16
+          },
+          {
+            "bin": 53,
+            "frequency_hz": 1656.25,
+            "magnitude": 4.3513669203203416e-16
+          },
+          {
+            "bin": 54,
+            "frequency_hz": 1687.5,
+            "magnitude": 1.031207624788639e-15
+          },
+          {
+            "bin": 55,
+            "frequency_hz": 1718.75,
+            "magnitude": 2.4506490783964074e-15
+          },
+          {
+            "bin": 56,
+            "frequency_hz": 1750.0,
+            "magnitude": 3.523061093581318e-15
+          },
+          {
+            "bin": 57,
+            "frequency_hz": 1781.25,
+            "magnitude": 2.5826210756810622e-15
+          },
+          {
+            "bin": 58,
+            "frequency_hz": 1812.5,
+            "magnitude": 1.0952540801563992e-15
+          },
+          {
+            "bin": 59,
+            "frequency_hz": 1843.75,
+            "magnitude": 4.564933262802391e-16
+          },
+          {
+            "bin": 60,
+            "frequency_hz": 1875.0,
+            "magnitude": 7.901681268839912e-16
+          },
+          {
+            "bin": 61,
+            "frequency_hz": 1906.25,
+            "magnitude": 3.1591600460653575e-16
+          },
+          {
+            "bin": 62,
+            "frequency_hz": 1937.5,
+            "magnitude": 2.9045202500653586e-16
+          },
+          {
+            "bin": 63,
+            "frequency_hz": 1968.75,
+            "magnitude": 5.438365931579779e-16
+          },
+          {
+            "bin": 64,
+            "frequency_hz": 2000.0,
+            "magnitude": 3.612545129574509e-16
+          },
+          {
+            "bin": 65,
+            "frequency_hz": 2031.25,
+            "magnitude": 2.6149952296507393e-16
+          },
+          {
+            "bin": 66,
+            "frequency_hz": 2062.5,
+            "magnitude": 3.8426359831840276e-16
+          },
+          {
+            "bin": 67,
+            "frequency_hz": 2093.75,
+            "magnitude": 3.9760892328149197e-16
+          },
+          {
+            "bin": 68,
+            "frequency_hz": 2125.0,
+            "magnitude": 4.377960564426557e-16
+          },
+          {
+            "bin": 69,
+            "frequency_hz": 2156.25,
+            "magnitude": 4.973233190963787e-16
+          },
+          {
+            "bin": 70,
+            "frequency_hz": 2187.5,
+            "magnitude": 1.95776017654297e-16
+          },
+          {
+            "bin": 71,
+            "frequency_hz": 2218.75,
+            "magnitude": 3.938424044959443e-16
+          },
+          {
+            "bin": 72,
+            "frequency_hz": 2250.0,
+            "magnitude": 7.273779291411898e-16
+          },
+          {
+            "bin": 73,
+            "frequency_hz": 2281.25,
+            "magnitude": 2.7890747105622287e-16
+          },
+          {
+            "bin": 74,
+            "frequency_hz": 2312.5,
+            "magnitude": 4.268050721160444e-16
+          },
+          {
+            "bin": 75,
+            "frequency_hz": 2343.75,
+            "magnitude": 5.475313310654934e-16
+          },
+          {
+            "bin": 76,
+            "frequency_hz": 2375.0,
+            "magnitude": 6.022679797846537e-16
+          },
+          {
+            "bin": 77,
+            "frequency_hz": 2406.25,
+            "magnitude": 3.50538932232164e-16
+          },
+          {
+            "bin": 78,
+            "frequency_hz": 2437.5,
+            "magnitude": 7.86384919546929e-16
+          },
+          {
+            "bin": 79,
+            "frequency_hz": 2468.75,
+            "magnitude": 2.3115560353434976e-15
+          },
+          {
+            "bin": 80,
+            "frequency_hz": 2500.0,
+            "magnitude": 1.585455677179167e-16
+          },
+          {
+            "bin": 81,
+            "frequency_hz": 2531.25,
+            "magnitude": 2.3257038660286036e-15
+          },
+          {
+            "bin": 82,
+            "frequency_hz": 2562.5,
+            "magnitude": 8.511123373655252e-16
+          },
+          {
+            "bin": 83,
+            "frequency_hz": 2593.75,
+            "magnitude": 4.0215775664093015e-16
+          },
+          {
+            "bin": 84,
+            "frequency_hz": 2625.0,
+            "magnitude": 6.95712610484592e-16
+          },
+          {
+            "bin": 85,
+            "frequency_hz": 2656.25,
+            "magnitude": 1.7948068678369126e-16
+          },
+          {
+            "bin": 86,
+            "frequency_hz": 2687.5,
+            "magnitude": 4.0799633367971475e-16
+          },
+          {
+            "bin": 87,
+            "frequency_hz": 2718.75,
+            "magnitude": 4.550962721967737e-16
+          },
+          {
+            "bin": 88,
+            "frequency_hz": 2750.0,
+            "magnitude": 2.9214632426559973e-16
+          },
+          {
+            "bin": 89,
+            "frequency_hz": 2781.25,
+            "magnitude": 3.1910015984705764e-16
+          },
+          {
+            "bin": 90,
+            "frequency_hz": 2812.5,
+            "magnitude": 1.674714266582198e-16
+          },
+          {
+            "bin": 91,
+            "frequency_hz": 2843.75,
+            "magnitude": 2.2692800866815665e-16
+          },
+          {
+            "bin": 92,
+            "frequency_hz": 2875.0,
+            "magnitude": 5.527352604235619e-16
+          },
+          {
+            "bin": 93,
+            "frequency_hz": 2906.25,
+            "magnitude": 1.879153156602183e-16
+          },
+          {
+            "bin": 94,
+            "frequency_hz": 2937.5,
+            "magnitude": 4.091098210552541e-16
+          },
+          {
+            "bin": 95,
+            "frequency_hz": 2968.75,
+            "magnitude": 2.9781530051843784e-16
+          },
+          {
+            "bin": 96,
+            "frequency_hz": 3000.0,
+            "magnitude": 7.771206221499021e-16
+          },
+          {
+            "bin": 97,
+            "frequency_hz": 3031.25,
+            "magnitude": 3.8276349667193285e-16
+          },
+          {
+            "bin": 98,
+            "frequency_hz": 3062.5,
+            "magnitude": 1.9703826527760457e-16
+          },
+          {
+            "bin": 99,
+            "frequency_hz": 3093.75,
+            "magnitude": 4.690417637814493e-16
+          },
+          {
+            "bin": 100,
+            "frequency_hz": 3125.0,
+            "magnitude": 3.793800741453568e-16
+          },
+          {
+            "bin": 101,
+            "frequency_hz": 3156.25,
+            "magnitude": 2.570701264411565e-16
+          },
+          {
+            "bin": 102,
+            "frequency_hz": 3187.5,
+            "magnitude": 4.044619990052286e-16
+          },
+          {
+            "bin": 103,
+            "frequency_hz": 3218.75,
+            "magnitude": 1.02957681039898e-15
+          },
+          {
+            "bin": 104,
+            "frequency_hz": 3250.0,
+            "magnitude": 7.900860368677015e-16
+          },
+          {
+            "bin": 105,
+            "frequency_hz": 3281.25,
+            "magnitude": 1.0015838832440497e-15
+          },
+          {
+            "bin": 106,
+            "frequency_hz": 3312.5,
+            "magnitude": 4.495401576194882e-16
+          },
+          {
+            "bin": 107,
+            "frequency_hz": 3343.75,
+            "magnitude": 2.697657895968848e-16
+          },
+          {
+            "bin": 108,
+            "frequency_hz": 3375.0,
+            "magnitude": 4.353990751649034e-16
+          },
+          {
+            "bin": 109,
+            "frequency_hz": 3406.25,
+            "magnitude": 2.4329088867229103e-16
+          },
+          {
+            "bin": 110,
+            "frequency_hz": 3437.5,
+            "magnitude": 1.8873785352211278e-16
+          },
+          {
+            "bin": 111,
+            "frequency_hz": 3468.75,
+            "magnitude": 1.0704516633426589e-16
+          },
+          {
+            "bin": 112,
+            "frequency_hz": 3500.0,
+            "magnitude": 1.8771633650637293e-16
+          },
+          {
+            "bin": 113,
+            "frequency_hz": 3531.25,
+            "magnitude": 3.0740658087855505e-16
+          },
+          {
+            "bin": 114,
+            "frequency_hz": 3562.5,
+            "magnitude": 2.9730390195715607e-16
+          },
+          {
+            "bin": 115,
+            "frequency_hz": 3593.75,
+            "magnitude": 7.604853563393431e-17
+          },
+          {
+            "bin": 116,
+            "frequency_hz": 3625.0,
+            "magnitude": 5.499715516212752e-16
+          },
+          {
+            "bin": 117,
+            "frequency_hz": 3656.25,
+            "magnitude": 1.672517408618892e-16
+          },
+          {
+            "bin": 118,
+            "frequency_hz": 3687.5,
+            "magnitude": 3.606210140288302e-16
+          },
+          {
+            "bin": 119,
+            "frequency_hz": 3718.75,
+            "magnitude": 5.850562142759548e-16
+          },
+          {
+            "bin": 120,
+            "frequency_hz": 3750.0,
+            "magnitude": 1.2636530848197628e-16
+          },
+          {
+            "bin": 121,
+            "frequency_hz": 3781.25,
+            "magnitude": 4.519616229544386e-16
+          },
+          {
+            "bin": 122,
+            "frequency_hz": 3812.5,
+            "magnitude": 1.9225589265379634e-16
+          },
+          {
+            "bin": 123,
+            "frequency_hz": 3843.75,
+            "magnitude": 9.078553361451246e-17
+          },
+          {
+            "bin": 124,
+            "frequency_hz": 3875.0,
+            "magnitude": 4.765771600013264e-16
+          },
+          {
+            "bin": 125,
+            "frequency_hz": 3906.25,
+            "magnitude": 1.2603887500732238e-16
+          },
+          {
+            "bin": 126,
+            "frequency_hz": 3937.5,
+            "magnitude": 6.958527774551374e-16
+          },
+          {
+            "bin": 127,
+            "frequency_hz": 3968.75,
+            "magnitude": 8.958066574890166e-16
+          },
+          {
+            "bin": 128,
+            "frequency_hz": 4000.0,
+            "magnitude": 5.509496735854983e-16
+          }
+        ],
+        "rms_amplitude": 1.0,
+        "sample_count": 256,
+        "sample_rate_hz": 8000.0,
+        "signed_peak_bin": 32,
+        "simulated": true,
+        "source": "deterministic mathematical tone generator",
+        "strongest_positive_bins": [
+          {
+            "bin": 32,
+            "frequency_hz": 1000.0,
+            "magnitude": 2.0000000000000013
+          },
+          {
+            "bin": 56,
+            "frequency_hz": 1750.0,
+            "magnitude": 3.523061093581318e-15
+          },
+          {
+            "bin": 8,
+            "frequency_hz": 250.0,
+            "magnitude": 3.4984058782773383e-15
+          },
+          {
+            "bin": 7,
+            "frequency_hz": 218.75,
+            "magnitude": 2.583708354753746e-15
+          },
+          {
+            "bin": 57,
+            "frequency_hz": 1781.25,
+            "magnitude": 2.5826210756810622e-15
+          },
+          {
+            "bin": 31,
+            "frequency_hz": 968.75,
+            "magnitude": 2.575693960754342e-15
+          },
+          {
+            "bin": 33,
+            "frequency_hz": 1031.25,
+            "magnitude": 2.5718943030592315e-15
+          },
+          {
+            "bin": 55,
+            "frequency_hz": 1718.75,
+            "magnitude": 2.4506490783964074e-15
+          }
+        ]
+      },
+      "errors": [],
+      "module": "sdr",
+      "operation": "synthetic_tone",
+      "status": "simulation",
+      "summary": "Generated and analyzed a synthetic complex-IQ tone; no RF hardware was used.",
+      "timestamp": "2026-10-24T01:29:57Z",
+      "warnings": [
+        "This is educational simulated data, not a radio signal observed from the environment."
+      ]
+    }
+  ],
+  "schema": "stellivor.report.v1",
+  "title": "Example only — synthetic SDR simulation",
+  "uploaded": false
+}
