@@ -20,7 +20,7 @@ STELLIVOR is a dependency-light, offline-first workbench for local system diagno
 
 ## Wireless Inspector reuse and limits
 
-Reviewed safe concepts from the supplied WiFi Inspector project were incorporated: wireless status, defensive security guidance, a hardening checklist, local test-phrase estimation, and safe owner recovery guidance. Saved Wi-Fi key extraction, password cracking, handshake capture, backdoors, and unauthorized attack features are not included. A wireless snapshot does not reveal network passwords.
+Reviewed safe concepts from the supplied WiFi Inspector project were incorporated: wireless status, defensive security guidance, a hardening checklist, local test-phrase estimation, and safe owner recovery guidance. An explicit local saved-profile action displays Wi-Fi keys already stored by Windows WLAN or Linux NetworkManager where permissions permit. Keys are transient and excluded from Result objects, session history, logs, and report exports. Android/Termux restricts access to saved Wi-Fi credentials; macOS retrieval is not implemented. This is not nearby-network password discovery. Handshake capture, network hash harvesting, remote credential attempts, backdoors, and unauthorized attack features are not included.
 
 ## Operational and privacy boundaries
 
