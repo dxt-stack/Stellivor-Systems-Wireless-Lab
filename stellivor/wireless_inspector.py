@@ -27,7 +27,7 @@ def saved_profile_names(info: PlatformInfo | None = None) -> Result:
         if result.succeeded:
             names = []
             for line in result.data.get("stdout", "").splitlines():
-                match = re.match(r"\s*(?:All User Profile|User Profile)\s*:\s*(.*?)\s*$",
+                match = re.match(r"\\s*(?:All User Profile|User Profile)\\s*:\\s*(.*?)\\s*$",
                                  line, re.IGNORECASE)
                 if match and match.group(1).strip():
                     names.append(match.group(1).strip())
@@ -82,6 +82,21 @@ def nearby_networks(info: PlatformInfo | None = None) -> Result:
     return wireless_snapshot(info)
 
 
+def _termux_connection_is_active(payload: dict[str, Any]) -> bool:
+    """Recognize an active Wi-Fi association without trusting command exit status alone."""
+    state = str(payload.get("supplicant_state", "")).strip().upper()
+    if state == "COMPLETED":
+        return True
+
+    ssid = str(payload.get("ssid", "")).strip()
+    unknown_ssids = {"", "<unknown ssid>", "<unknown>", "unknown", "0x"}
+    try:
+        frequency = int(payload.get("frequency_mhz", -1))
+    except (TypeError, ValueError):
+        frequency = -1
+    return ssid.lower() not in unknown_ssids and frequency > 0
+
+
 def current_connection(info: PlatformInfo | None = None) -> Result:
     info = info or detect_platform()
     if info.name == "windows":
@@ -102,9 +117,22 @@ def current_connection(info: PlatformInfo | None = None) -> Result:
                 allowed = {"ssid", "bssid", "ip", "frequency_mhz", "link_speed_mbps",
                            "rssi", "network_id", "supplicant_state"}
                 result.data["connection"] = {k: v for k, v in payload.items() if k in allowed}
+                if _termux_connection_is_active(payload):
+                    result.summary = "Active Wi-Fi connection detected."
+                else:
+                    result.status = Status.WARNING
+                    result.summary = "The command succeeded, but Android reports no active Wi-Fi connection."
+                    result.warnings.append(
+                        "No active Wi-Fi association was detected; connection fields contain unavailable-value markers."
+                    )
             except (ValueError, json.JSONDecodeError) as exc:
                 result.status = Status.FAILURE
+                result.summary = "Could not interpret the Termux:API connection response."
                 result.errors.append(f"Could not parse Termux:API response: {exc}")
+            finally:
+                # The raw response can include device MAC addresses. Keep only
+                # the explicit allow-listed connection fields in serialized output.
+                result.data.pop("stdout", None)
         result.warnings.append("Requires Termux:API and Android permissions; sensitive fields are filtered.")
         return result
     return _result("wireless_inspector", "current_connection", Status.UNSUPPORTED,
