@@ -64,7 +64,7 @@ python main.py wifi refresh --json
 
 The supplied Wi-Fi Inspector archive is integrated through STELLIVOR's existing Result/status model, platform detection, terminal UI, direct CLI, and tests. It does not replace the project structure.
 
-- Saved Wi-Fi profile names and non-secret profile metadata where the OS exposes them.
+- Saved Wi-Fi profile names and, on supported systems, locally stored Wi-Fi keys displayed on explicit request. Keys are never added to session results or report exports.
 - Nearby Wi-Fi scan, current connection details, and a refresh operation.
 - Network interfaces, IP configuration, and route snapshots.
 - Read-only Wi-Fi security hints, owner recovery guidance, local passphrase estimate, and interactive router-hardening checklist.
@@ -72,7 +72,7 @@ The supplied Wi-Fi Inspector archive is integrated through STELLIVOR's existing 
 
 Platform limitations are explicit: Windows uses native WLAN commands; Linux uses NetworkManager where installed; Termux uses Termux:API where installed and permitted. Android does not expose other applications' saved Wi-Fi profiles. Unsupported or permission-limited operations are reported as such, never disguised as empty successful scans.
 
-**Safety boundary:** STELLIVOR never extracts Wi-Fi keys (key=clear), captures handshakes, harvests hashes from networks/devices, or sends credential material to a service. John operates only on a local hash file and optional local wordlist that you supply and are authorized to audit. Hash files, John session files, john.pot, and recovered results are sensitive; keep them private. Tool detection does not install or validate tools.
+**Wi-Fi key display:** When you explicitly choose the saved-profile reveal action, STELLIVOR requests locally stored keys from the operating system and displays available values in the terminal. Windows uses the native WLAN profile command with key=clear; Linux uses NetworkManager nmcli --show-secrets. This is local inspection of profiles already saved on your device—not nearby-network password discovery, remote collection, or a network attack. Android/Termux restricts access to saved Wi-Fi credentials; macOS key retrieval is not implemented yet. Keys are transient: they are not placed in session Result objects, logs, or JSON/Markdown reports. Review terminal scrollback before sharing screenshots.\n\nSTELLIVOR does not capture handshakes, harvest hashes from networks/devices, or send credential material to a service. John operates only on a local hash file and optional local wordlist that you supply and are authorized to audit. Hash files, John session files, john.pot, and recovered results are sensitive; keep them private. Tool detection does not install or validate tools.
 
 John's recovered-result output remains available locally in the operator's terminal/session; this functionality is not removed or suppressed. JSON/Markdown report exports exclude credential-audit stdout/stderr by default while preserving the other audit metadata. The interactive export flow asks before including that sensitive output in a private report. Never commit hash files, pot/session files, recovered credentials, or sensitive reports. See [`SECURITY.md`](SECURITY.md).
 
