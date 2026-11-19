@@ -70,7 +70,7 @@ def inspect_saved_profile(profile: str, info: PlatformInfo | None = None) -> Res
         return run_command(["netsh", "wlan", "show", "profile", f"name={name}"],
                            module="wireless_inspector", operation="profile_inspection", timeout=12)
     if info.name == "linux":
-        return run_command(["nmcli", "-f", "NAME,UUID,TYPE,AUTOCONNECT, connection", "connection", "show", name],
+        return run_command(["nmcli", "-f", "NAME,UUID,TYPE,AUTOCONNECT", "connection", "show", name],
                            module="wireless_inspector", operation="profile_inspection", timeout=12)
     return _result("wireless_inspector", "profile_inspection", Status.UNSUPPORTED,
                    "This platform does not expose saved-profile metadata through the current adapter.",
