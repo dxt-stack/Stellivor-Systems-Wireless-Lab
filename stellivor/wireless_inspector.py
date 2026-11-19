@@ -27,7 +27,7 @@ def saved_profile_names(info: PlatformInfo | None = None) -> Result:
         if result.succeeded:
             names = []
             for line in result.data.get("stdout", "").splitlines():
-                match = re.match(r"\\s*(?:All User Profile|User Profile)\\s*:\\s*(.*?)\\s*$",
+                match = re.match(r"\s*(?:All User Profile|User Profile)\s*:\s*(.*?)\s*$",
                                  line, re.IGNORECASE)
                 if match and match.group(1).strip():
                     names.append(match.group(1).strip())
