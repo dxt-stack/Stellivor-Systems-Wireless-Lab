@@ -14,6 +14,10 @@ from .sdr import simulate_tone
 from .system_info import collect_system_info
 from .tools import discover_tools
 from .wireless import wireless_snapshot
+from .wireless_inspector import (
+    current_connection, inspect_saved_profile, network_configuration,
+    nearby_networks, refresh_wireless_information, saved_profile_names,
+)
 
 
 def _print_result(result: Result, as_json: bool) -> int:
@@ -77,6 +81,11 @@ def build_parser() -> argparse.ArgumentParser:
         command = sub.add_parser(name, help=help_text)
         _add_json(command)
         command.add_argument("action", choices=("snapshot",), nargs="?", default="snapshot")
+
+    wifi = sub.add_parser("wifi", help="Wi-Fi Inspector: read-only wireless and adapter workflows")
+    _add_json(wifi)
+    wifi.add_argument("action", choices=("profiles", "profile", "nearby", "connection", "adapters", "refresh"))
+    wifi.add_argument("profile_name", nargs="?", help="Saved profile name for the profile action")
     return parser
 
 
@@ -102,6 +111,22 @@ def execute(arguments: argparse.Namespace) -> Result | None:
         return simulate_tone(arguments.frequency, arguments.sample_rate, arguments.count, noise_stddev=arguments.noise, seed=arguments.seed)
     if domain == "wireless":
         return wireless_snapshot()
+    if domain == "wifi":
+        if arguments.action == "profiles":
+            return saved_profile_names()
+        if arguments.action == "profile":
+            if not arguments.profile_name:
+                return Result("cli", "wifi_profile", Status.FAILURE,
+                              "A saved profile name is required.",
+                              errors=["A saved profile name must be supplied."])
+            return inspect_saved_profile(arguments.profile_name)
+        if arguments.action == "nearby":
+            return nearby_networks()
+        if arguments.action == "connection":
+            return current_connection()
+        if arguments.action == "adapters":
+            return network_configuration()
+        return refresh_wireless_information()
     if domain == "connections":
         return list_listening_tcp()
     if domain == "tools":
