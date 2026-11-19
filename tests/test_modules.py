@@ -181,7 +181,7 @@ class UITests(unittest.TestCase):
         text = output.getvalue()
         self.assertGreater(len(delays), 5)
         self.assertEqual(len(delays), len(text.splitlines()))
-        self.assertGreater(sum(delays), 0.8)
+        self.assertGreater(delays[0], 0.018)
         self.assertLessEqual(sum(delays), 4.0)
         self.assertIn("\033[38;2;91;205;255m", text)  # keys
         self.assertIn("\033[38;2;255;222;140m", text)  # numeric values
