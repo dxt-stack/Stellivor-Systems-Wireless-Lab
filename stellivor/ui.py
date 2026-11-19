@@ -142,7 +142,7 @@ class StellivorUI:
         self.animate = bool(animate and is_tty)
         # Avoid cursor-up redraws: they interfere with terminal scrollback on mobile.
         self.live_clock_enabled = False
-        self.pace_results = bool(is_tty if pace_results is None else (pace_results and is_tty))
+        self.pace_results = bool(pace_results and is_tty)
         self.clock_fn = clock_fn or (lambda: datetime.now().astimezone())
         self.sleep_fn = sleep_fn
         encoding = getattr(self.output, "encoding", None) or "utf-8"
@@ -464,13 +464,18 @@ class StellivorUI:
     def _emit_result_lines(self, lines: list[str]) -> None:
         if not lines:
             return
-        # Slow interactive reveal enough to read on a phone, but cap total delay.
-        delay = min(0.05, 4.0 / len(lines)) if self.pace_results else 0.0
+        if not self.pace_results:
+            # One write + one flush avoids terminal round-trips for every line.
+            self.output.write("\n".join(lines) + "\n")
+            self.output.flush()
+            return
+
+        # Optional readable reveal for users who prefer the animated presentation.
+        delay = min(0.05, 4.0 / len(lines))
         for line in lines:
             self.output.write(line + "\n")
             self.output.flush()
-            if delay:
-                self.sleep_fn(delay)
+            self.sleep_fn(delay)
 
     def print_result(self, result: Result, *, max_data_characters: int = 10000) -> None:
         lines = [""]
@@ -576,7 +581,7 @@ class StellivorUI:
     def wireless_security_menu(self) -> None:
         while self.running:
             self.panel("WI-FI INSPECTOR  /  WIRELESS & SECURITY", [
-                "1  List saved Wi-Fi profile names (no keys)",
+                "1  List saved profiles + key-access status (no key values)",
                 "2  Inspect a saved profile (metadata only)",
                 "3  Scan nearby Wi-Fi networks",
                 "4  Show current Wi-Fi connection",
