@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased — 2026-11-19
+
+- Reconciled architecture, security, platform-support, roadmap, and agent handover documentation with the implemented local Wi-Fi key display and authorized John the Ripper workbench.
+- Clarified that Hashcat is detected but not invoked, sensitive credential-audit output is excluded from reports by default, and the landing-menu clock is static.
+- Recorded the 101-test Termux run and successful Python 3.10–3.13 GitHub Actions matrix for the current source baseline.
+
 ## 0.6.0 — 2026-11-05
 
 Terminal workbench and authorized-device readiness upgrade.
