@@ -51,6 +51,11 @@ python main.py device readiness --json
 python main.py file inspect ./examples/sample_report.json --json
 python main.py integrity verify ./examples/sample_report.json SHA256_DIGEST --json
 python main.py sdr simulate --frequency 1000 --count 1024 --json
+python main.py wifi profiles --json
+python main.py wifi nearby --json
+python main.py wifi connection --json
+python main.py wifi adapters --json
+python main.py wifi refresh --json
 ```
 
 `device readiness` checks the local `adb` installation, lists visible device states, distinguishes authorized from pending devices, and reports optional `scrcpy` availability. It never bypasses authentication, guesses a PIN, executes an arbitrary device shell, installs an APK, captures private data, or changes device state. See [`docs/CILOCKS_REVIEW.md`](docs/CILOCKS_REVIEW.md) for the CiLocks compatibility and licensing boundary.
