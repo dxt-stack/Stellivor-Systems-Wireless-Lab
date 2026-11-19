@@ -18,7 +18,8 @@ The deterministic suite covers:
 - report generation, error/limitation preservation, privacy notices, and local JSON/Markdown writes;
 - hostname validation and mocked DNS/TCP outcomes without external network access;
 - representative Linux and Termux wireless adapter parsing with mocked commands, not real radio scans; saved-profile listing and inspection safeguards, Android disconnected-versus-associated Wi-Fi state classification, raw Termux response redaction, refresh aggregation, and interface/route partial-status preservation;
-- local credential-audit tool discovery, explicit authorization gates, hash/wordlist path validation, safe argument-array invocation, and session naming;
+- local credential-audit tool discovery, explicit authorization gates, hash/wordlist path validation, safe argument-array invocation, session naming, and preservation of operator-visible local John output;
+- credential-audit report privacy: stdout/stderr excluded by default from JSON/Markdown exports, explicit opt-in for private reports, and tests that verify both exclusion and opt-in behavior;
 - local passphrase-estimator behavior, no-secret-return guarantee, and hardening checklist;
 - tool-discovery semantics; brighter true-colour emblem, outlined/ASCII wordmark, startup clock animation with timezone/offset and a static scrollback-safe menu clock, progressive selection-label reveal before content with a bounded dragon cue, non-TTY immediacy, narrow-panel wrapping, and the read-only quick-audit bundle; filtered Termux battery data;
 - paced interactive result reveal at a readable bounded delay, semantic JSON colors, and selectable theme palettes.
@@ -54,3 +55,8 @@ Expected: version is `STELLIVOR 0.6.0`; the noninteractive menu exits cleanly; s
 ## Cross-platform status
 
 Run native adapters on real Windows, Linux distributions, macOS versions, and Android devices before claiming support for them. Mocked platform tests are not device tests. No SDR receiver is needed by the deterministic suite.
+
+
+## Credential-audit report privacy check
+
+The John workbench continues to show its normal output locally. When exporting the session, sensitive credential-audit stdout/stderr is excluded by default. The interactive UI asks for explicit opt-in before including it in a private report. Test both default exclusion and explicit inclusion with `python -m unittest discover -s tests -v`.
