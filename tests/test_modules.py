@@ -170,7 +170,7 @@ class UITests(unittest.TestCase):
         plain = re.sub(r"\x1b\[[0-9;]*m", "", text)
         self.assertLessEqual(max(map(len, plain.splitlines())), 44)
 
-    def test_result_lines_are_paced_and_values_use_semantic_colors(self):
+    def test_default_output_is_immediate_and_uses_semantic_colors(self):
         class TtyBuffer(io.StringIO):
             def isatty(self):
                 return True
@@ -179,14 +179,24 @@ class UITests(unittest.TestCase):
         ui = StellivorUI(output=output, use_color=True, theme="ice", sleep_fn=delays.append)
         ui.print_result(Result("system", "profile", Status.SUCCESS, "Local snapshot ready.", data={"count": 7, "ready": True, "label": "local"}))
         text = output.getvalue()
-        self.assertGreater(len(delays), 5)
-        self.assertEqual(len(delays), len(text.splitlines()))
-        self.assertGreater(delays[0], 0.018)
-        self.assertLessEqual(sum(delays), 4.0)
+        self.assertEqual(delays, [])
         self.assertIn("\033[38;2;91;205;255m", text)  # keys
         self.assertIn("\033[38;2;255;222;140m", text)  # numeric values
         self.assertIn("\033[38;2;214;151;255m", text)  # booleans
         self.assertIn("\033[38;2;99;225;185m", text)  # success state
+
+    def test_paced_output_is_opt_in_and_remains_bounded(self):
+        class TtyBuffer(io.StringIO):
+            def isatty(self):
+                return True
+        output = TtyBuffer()
+        delays = []
+        ui = StellivorUI(output=output, use_color=True, pace_results=True, sleep_fn=delays.append)
+        ui.print_result(Result("system", "profile", Status.SUCCESS, "Local snapshot ready.", data={"count": 7, "ready": True, "label": "local"}))
+        self.assertGreater(len(delays), 5)
+        self.assertEqual(len(delays), len(output.getvalue().splitlines()))
+        self.assertGreater(delays[0], 0.018)
+        self.assertLessEqual(sum(delays), 4.0)
 
     def test_fast_output_bypasses_tty_pacing(self):
         class TtyBuffer(io.StringIO):
