@@ -61,5 +61,49 @@ class SavedProfileTests(unittest.TestCase):
         self.assertEqual(result.data["routes"]["status"], "unsupported")
 
 
+
+class TermuxConnectionStateTests(unittest.TestCase):
+    @patch("stellivor.wireless_inspector.run_command")
+    def test_disconnected_android_wifi_is_warning_not_success(self, command):
+        command.return_value = Result(
+            "wireless_inspector", "current_connection", Status.SUCCESS, "command ok",
+            data={"stdout": '{"ssid":"<unknown ssid>","ip":"0.0.0.0",'
+                  '"frequency_mhz":-1,"supplicant_state":"UNINITIALIZED",'
+                  '"mac_address":"02:00:00:00:00:00"}'},
+        )
+        result = current_connection(PlatformInfo("termux", "Linux", True, True))
+        self.assertEqual(result.status, Status.WARNING)
+        self.assertIn("no active Wi-Fi connection", result.summary)
+        self.assertNotIn("stdout", result.data)
+        self.assertNotIn("mac_address", result.data)
+        self.assertEqual(result.data["connection"]["ssid"], "<unknown ssid>")
+
+    @patch("stellivor.wireless_inspector.run_command")
+    def test_completed_android_wifi_is_success(self, command):
+        command.return_value = Result(
+            "wireless_inspector", "current_connection", Status.SUCCESS, "command ok",
+            data={"stdout": '{"ssid":"LabNet","ip":"192.0.2.10",'
+                  '"frequency_mhz":2412,"supplicant_state":"COMPLETED",'
+                  '"mac_address":"02:00:00:00:00:00"}'},
+        )
+        result = current_connection(PlatformInfo("termux", "Linux", True, True))
+        self.assertEqual(result.status, Status.SUCCESS)
+        self.assertEqual(result.summary, "Active Wi-Fi connection detected.")
+        self.assertEqual(result.data["connection"]["ssid"], "LabNet")
+        self.assertNotIn("stdout", result.data)
+        self.assertNotIn("mac_address", result.data["connection"])
+
+    @patch("stellivor.wireless_inspector.run_command")
+    def test_malformed_android_connection_json_fails_and_is_redacted(self, command):
+        command.return_value = Result(
+            "wireless_inspector", "current_connection", Status.SUCCESS, "command ok",
+            data={"stdout": "not-json"},
+        )
+        result = current_connection(PlatformInfo("termux", "Linux", True, True))
+        self.assertEqual(result.status, Status.FAILURE)
+        self.assertNotIn("stdout", result.data)
+        self.assertTrue(result.errors)
+
+
 if __name__ == "__main__":
     unittest.main()
