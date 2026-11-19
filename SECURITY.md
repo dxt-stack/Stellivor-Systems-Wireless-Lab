@@ -4,7 +4,13 @@ STELLIVOR is an offline-first local systems and wireless learning workbench. Dia
 
 ## Local credential-audit boundary
 
-The optional John the Ripper workbench operates on a local hash file and, where selected, a local wordlist supplied by the operator. The operator must confirm ownership or explicit authorization before an audit starts. Process execution uses argument arrays without a shell; no network hash collection, handshake capture, or remote credential attempts are part of this workflow.\n\n## Saved Wi-Fi key display\n\nThe saved-profile reveal action can display keys already stored for Wi-Fi profiles on the local device. It is an explicit interactive operation, not a startup action. Windows uses the native WLAN profile command with key=clear; Linux uses NetworkManager nmcli --show-secrets. Android/Termux does not expose these credentials to this adapter, and macOS retrieval is not implemented yet. This does not discover passwords for nearby networks or contact any remote system.\n\nKey values are transient display data: the UI does not add them to serializable Result objects, session history, logs, or report exports. Treat terminal scrollback and screenshots as sensitive. Only inspect devices and profiles you own or are authorized to administer.
+The optional John the Ripper workbench operates on a local hash file and, where selected, a local wordlist supplied by the operator. The operator must confirm ownership or explicit authorization before an audit starts. Process execution uses argument arrays without a shell; no network hash collection, handshake capture, or remote credential attempts are part of this workflow.
+
+## Saved Wi-Fi key display
+
+The saved-profile reveal action can display keys already stored for Wi-Fi profiles on the local device. It is an explicit interactive operation, not a startup action. Windows uses the native WLAN profile command with key=clear; Linux uses NetworkManager nmcli --show-secrets. Android/Termux does not expose these credentials to this adapter, and macOS retrieval is not implemented yet. This does not discover passwords for nearby networks or contact any remote system.
+
+Key values are transient display data: the UI does not add them to serializable Result objects, session history, logs, or report exports. Treat terminal scrollback and screenshots as sensitive. Only inspect devices and profiles you own or are authorized to administer.
 
 John's output, including recovered results from the local authorized audit, is intentionally available in the operator's terminal/session. This is a local operator feature, not repository content. Hash files, wordlists, John pot files, session files, and recovered output are sensitive and should remain on systems and storage controlled by the operator.
 
