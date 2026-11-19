@@ -82,7 +82,65 @@ class AdapterTests(unittest.TestCase):
         self.assertEqual(result.data["sections"]["saved_profile_names"]["status"], "unsupported")
 
 
+    @patch("stellivor.wireless_inspector.run_command")
+    def test_windows_saved_profile_key_is_parsed_without_shell(self, command):
+        from stellivor.wireless_inspector import saved_profile_key
+        command.return_value = Result(
+            "wireless_inspector", "saved_profile_key", Status.SUCCESS, "ok",
+            data={"stdout": "    Key Content            : TEST_ONLY_NOT_A_REAL_PASSWORD\\n"},
+        )
+        key, state = saved_profile_key("Home WiFi", PlatformInfo("windows", "Windows"))
+        self.assertEqual(key, "TEST_ONLY_NOT_A_REAL_PASSWORD")
+        self.assertEqual(state, "Available")
+        args = command.call_args.args[0]
+        self.assertEqual(args, ["netsh", "wlan", "show", "profile", "name=Home WiFi", "key=clear"])
+        self.assertNotIn("shell", command.call_args.kwargs)
+
+    @patch("stellivor.wireless_inspector.run_command")
+    def test_linux_saved_profile_key_uses_nmcli_show_secrets(self, command):
+        from stellivor.wireless_inspector import saved_profile_key
+        command.return_value = Result(
+            "wireless_inspector", "saved_profile_key", Status.SUCCESS, "ok",
+            data={"stdout": "TEST_ONLY_NOT_A_REAL_PASSWORD\\n"},
+        )
+        key, state = saved_profile_key("Home", PlatformInfo("linux", "Linux"))
+        self.assertEqual(key, "TEST_ONLY_NOT_A_REAL_PASSWORD")
+        self.assertEqual(state, "Available")
+        self.assertEqual(command.call_args.args[0], [
+            "nmcli", "--show-secrets", "-g", "802-11-wireless-security.psk",
+            "connection", "show", "Home",
+        ])
+
+    def test_android_saved_profile_key_is_truthfully_unsupported(self):
+        from stellivor.wireless_inspector import saved_profile_key
+        key, state = saved_profile_key("Home", PlatformInfo("termux", "Linux", True, True))
+        self.assertIsNone(key)
+        self.assertIn("Android restricts", state)
+
+    def test_saved_profile_key_rejects_control_characters(self):
+        from stellivor.wireless_inspector import saved_profile_key
+        key, state = saved_profile_key("Home\\nInjected", PlatformInfo("windows", "Windows"))
+        self.assertIsNone(key)
+        self.assertEqual(state, "Invalid profile name")
+
+
 class UITests(unittest.TestCase):
+
+    @patch("stellivor.ui.saved_profile_key", return_value=("TEST_ONLY_NOT_A_REAL_PASSWORD", "Available"))
+    @patch("stellivor.ui.saved_profile_names")
+    def test_saved_profile_reveal_displays_key_but_never_records_it(self, profiles, key_lookup):
+        profiles.return_value = Result(
+            "wireless_inspector", "saved_profiles", Status.SUCCESS, "profiles",
+            data={"profiles": ["Test Network"], "count": 1},
+        )
+        answers = iter(["1", "y", "0"])
+        output = io.StringIO()
+        ui = StellivorUI(input_fn=lambda _prompt: next(answers), output=output, use_color=False)
+        ui.wireless_security_menu()
+        self.assertIn("Test Network  |  KEY: TEST_ONLY_NOT_A_REAL_PASSWORD", output.getvalue())
+        self.assertNotIn("TEST_ONLY_NOT_A_REAL_PASSWORD", repr(ui.results))
+        key_lookup.assert_called_once_with("Test Network")
+
     def test_menu_exit_without_network_or_tools(self):
         output = io.StringIO()
         ui = StellivorUI(input_fn=lambda _prompt: "0", output=output, use_color=False)
