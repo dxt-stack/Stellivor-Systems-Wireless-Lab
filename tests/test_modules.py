@@ -87,7 +87,7 @@ class AdapterTests(unittest.TestCase):
         from stellivor.wireless_inspector import saved_profile_key
         command.return_value = Result(
             "wireless_inspector", "saved_profile_key", Status.SUCCESS, "ok",
-            data={"stdout": "    Key Content            : TEST_ONLY_NOT_A_REAL_PASSWORD\\n"},
+            data={"stdout": "    Key Content            : TEST_ONLY_NOT_A_REAL_PASSWORD\n"},
         )
         key, state = saved_profile_key("Home WiFi", PlatformInfo("windows", "Windows"))
         self.assertEqual(key, "TEST_ONLY_NOT_A_REAL_PASSWORD")
