@@ -29,7 +29,7 @@ from .tools import discover_tools
 from .wireless import wireless_snapshot
 from .wireless_inspector import (
     current_connection, inspect_saved_profile, network_configuration,
-    nearby_networks, refresh_wireless_information, saved_profile_names,
+    nearby_networks, refresh_wireless_information, saved_profile_names, saved_profile_key,
 )
 from .credential_audit import audit_tool_status, john_information, run_local_audit
 
@@ -581,7 +581,7 @@ class StellivorUI:
     def wireless_security_menu(self) -> None:
         while self.running:
             self.panel("WI-FI INSPECTOR  /  WIRELESS & SECURITY", [
-                "1  List saved profiles + key-access status (no key values)",
+                "1  List saved profiles + reveal locally saved keys",
                 "2  Inspect a saved profile (metadata only)",
                 "3  Scan nearby Wi-Fi networks",
                 "4  Show current Wi-Fi connection",
@@ -608,7 +608,25 @@ class StellivorUI:
             if choice in labels:
                 self._dragon_transition(labels[choice])
             if choice == "1":
-                self.record(saved_profile_names())
+                profiles = saved_profile_names()
+                # Record names/status only. Secret values never enter Results,
+                # session history, or report exports.
+                self.record(profiles)
+                names = profiles.data.get("profiles", []) if profiles.succeeded else []
+                if not names:
+                    self.write("No saved Wi-Fi profiles were returned by this platform.")
+                    continue
+                if self.prompt("Reveal locally stored Wi-Fi keys on this screen? [y/N]").lower() != "y":
+                    self.write("Key reveal cancelled; only profile names were listed.")
+                    continue
+                self.write("LOCAL SAVED WI-FI CREDENTIALS  /  DISPLAY ONLY")
+                for name in names:
+                    key, state = saved_profile_key(name)
+                    if key is None:
+                        self.write(f"  {name}  |  {state}")
+                    else:
+                        self.write(f"  {name}  |  KEY: {key}")
+                        del key
             elif choice == "2":
                 profiles = saved_profile_names()
                 self.record(profiles)
@@ -768,7 +786,7 @@ class StellivorUI:
                 "Contact the ISP or router manufacturer using official support.",
                 "If necessary, reset your own router and set a new unique passphrase.",
             ], "nearby_network_passwords_retrieved": False, "saved_keys_extracted": False},
-            warnings=["A nearby-network scan cannot reveal a network's password. Stellivor never extracts saved Wi-Fi keys."],
+            warnings=["A nearby-network scan cannot reveal passwords for networks that are not saved on this device."],
         ))
 
     def quick_local_audit(self) -> None:
