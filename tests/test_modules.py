@@ -101,7 +101,7 @@ class AdapterTests(unittest.TestCase):
         from stellivor.wireless_inspector import saved_profile_key
         command.return_value = Result(
             "wireless_inspector", "saved_profile_key", Status.SUCCESS, "ok",
-            data={"stdout": "TEST_ONLY_NOT_A_REAL_PASSWORD\\n"},
+            data={"stdout": "TEST_ONLY_NOT_A_REAL_PASSWORD\n"},
         )
         key, state = saved_profile_key("Home", PlatformInfo("linux", "Linux"))
         self.assertEqual(key, "TEST_ONLY_NOT_A_REAL_PASSWORD")
@@ -119,7 +119,7 @@ class AdapterTests(unittest.TestCase):
 
     def test_saved_profile_key_rejects_control_characters(self):
         from stellivor.wireless_inspector import saved_profile_key
-        key, state = saved_profile_key("Home\\nInjected", PlatformInfo("windows", "Windows"))
+        key, state = saved_profile_key("Home\nInjected", PlatformInfo("windows", "Windows"))
         self.assertIsNone(key)
         self.assertEqual(state, "Invalid profile name")
 
