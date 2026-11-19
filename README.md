@@ -55,11 +55,19 @@ python main.py sdr simulate --frequency 1000 --count 1024 --json
 
 `device readiness` checks the local `adb` installation, lists visible device states, distinguishes authorized from pending devices, and reports optional `scrcpy` availability. It never bypasses authentication, guesses a PIN, executes an arbitrary device shell, installs an APK, captures private data, or changes device state. See [`docs/CILOCKS_REVIEW.md`](docs/CILOCKS_REVIEW.md) for the CiLocks compatibility and licensing boundary.
 
-## Safe WiFi Inspector reuse
+## Wi-Fi Inspector integration
 
-The supplied WiFi Inspector archive was reviewed before integration. Stellivor reuses the safe product ideas—wireless status, security guidance, a checklist, and a local passphrase estimate—through its own modular, capability-aware code.
+The supplied Wi-Fi Inspector archive is integrated through STELLIVOR's existing Result/status model, platform detection, terminal UI, direct CLI, and tests. It does not replace the project structure.
 
-**Not included:** saved Wi-Fi key extraction (`key=clear`), John the Ripper/Hashcat password-cracking workflows, handshake capture, backdoor tools, exploit menus, or unauthorized attack features. On Windows, Stellivor can show saved profile names where native support permits; it does not request key material. Android/Termux cannot be assumed to expose saved profiles.
+- Saved Wi-Fi profile names and non-secret profile metadata where the OS exposes them.
+- Nearby Wi-Fi scan, current connection details, and a refresh operation.
+- Network interfaces, IP configuration, and route snapshots.
+- Read-only Wi-Fi security hints, owner recovery guidance, local passphrase estimate, and interactive router-hardening checklist.
+- Optional John the Ripper / Hashcat detection. The John workbench supports local single, wordlist, and wordlist+rules modes, recovered-result display, named session status, and resume for hash files supplied by the operator. Every run requires an explicit authorization confirmation and uses local files only.
+
+Platform limitations are explicit: Windows uses native WLAN commands; Linux uses NetworkManager where installed; Termux uses Termux:API where installed and permitted. Android does not expose other applications' saved Wi-Fi profiles. Unsupported or permission-limited operations are reported as such, never disguised as empty successful scans.
+
+**Safety boundary:** STELLIVOR never extracts Wi-Fi keys (key=clear), captures handshakes, harvests hashes from networks/devices, or sends credential material to a service. John operates only on a local hash file and optional local wordlist that you supply and are authorized to audit. Hash files, John session files, john.pot, and recovered results are sensitive; keep them private. Tool detection does not install or validate tools.
 
 ## Run on Android / Termux
 
