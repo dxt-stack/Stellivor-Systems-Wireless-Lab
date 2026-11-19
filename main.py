@@ -16,7 +16,8 @@ def main() -> int:
     parser.add_argument("--version", action="version", version=f"STELLIVOR {__version__}")
     parser.add_argument("--no-color", action="store_true", help="Disable ANSI terminal colors")
     parser.add_argument("--theme", choices=("stellivor", "ember", "ice"), default="stellivor", help="Choose a restrained terminal color theme")
-    parser.add_argument("--fast-output", action="store_true", help="Print result lines immediately instead of pacing them")
+    parser.add_argument("--fast-output", action="store_true", help="Legacy alias; print result lines immediately")
+    parser.add_argument("--paced-output", action="store_true", help="Reveal result lines gradually (optional presentation mode)")
     animation = parser.add_mutually_exclusive_group()
     animation.add_argument("--animation", action="store_true", help="Enable live clock ticking and dragon cues on an interactive terminal")
     animation.add_argument("--no-animation", action="store_true", help="Keep the clock static and disable dragon transitions")
@@ -32,7 +33,7 @@ def main() -> int:
     return run_ui(
         use_color=False if arguments.no_color else None,
         animate=animate,
-        pace_results=False if arguments.fast_output else None,
+        pace_results=True if arguments.paced_output else False,
         theme=arguments.theme,
     )
 
