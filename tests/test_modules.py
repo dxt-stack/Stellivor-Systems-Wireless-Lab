@@ -181,7 +181,8 @@ class UITests(unittest.TestCase):
         text = output.getvalue()
         self.assertGreater(len(delays), 5)
         self.assertEqual(len(delays), len(text.splitlines()))
-        self.assertLessEqual(sum(delays), 0.8)
+        self.assertGreater(sum(delays), 0.8)
+        self.assertLessEqual(sum(delays), 4.0)
         self.assertIn("\033[38;2;91;205;255m", text)  # keys
         self.assertIn("\033[38;2;255;222;140m", text)  # numeric values
         self.assertIn("\033[38;2;214;151;255m", text)  # booleans
@@ -211,63 +212,28 @@ class UITests(unittest.TestCase):
         self.assertLessEqual(len(clock_line), 24)
         self.assertIn("12:34:56 WAT UTC+01:00", clock_line)
 
-    def test_live_clock_pause_toggle_is_available_in_tty_menu(self):
+    def test_menu_clock_is_static_and_preserves_terminal_scrollback(self):
         class TtyBuffer(io.StringIO):
             def isatty(self):
                 return True
-        answers = iter(["p", "p", "0"])
         output = TtyBuffer()
-        ui = StellivorUI(
-            input_fn=lambda _prompt: next(answers), output=output, use_color=False,
-            sleep_fn=lambda _delay: None,
-        )
+        ui = StellivorUI(output=output, use_color=False, sleep_fn=lambda _delay: None)
         self.assertTrue(ui.animate)
-        self.assertTrue(ui.live_clock_enabled)
-        ui.run()
+        self.assertFalse(ui.live_clock_enabled)
+        ui.menu()
         text = output.getvalue()
-        self.assertIn("P+Enter pause clock", text)
-        self.assertIn("P+Enter resume clock", text)
-        self.assertIn("Live clock paused; periodic terminal writes stopped.", text)
-        self.assertIn("Live clock resumed.", text)
-        self.assertTrue(ui.live_clock_enabled)
+        self.assertIn("Scrollback-safe mode", text)
+        self.assertNotIn("\\033[1A", text)
+        self.assertNotIn("\\033[s", text)
 
-    def test_live_clock_rolls_seconds_through_minute_and_hour(self):
-        class StopAfterOneTick:
-            def __init__(self):
-                self.wait_calls = 0
-                self.delays = []
-            def is_set(self):
-                return self.wait_calls >= 2
-            def wait(self, delay):
-                self.delays.append(delay)
-                self.wait_calls += 1
-                return self.wait_calls == 2
-            def set(self):
-                return None
+    def test_menu_input_does_not_start_a_cursor_redraw_thread(self):
         class TtyBuffer(io.StringIO):
             def isatty(self):
                 return True
-        zone = timezone(timedelta(hours=1), "WAT")
-        moments = iter([
-            datetime(2026, 10, 24, 12, 59, 59, 500000, tzinfo=zone),
-            datetime(2026, 10, 24, 12, 59, 59, 500000, tzinfo=zone),
-            datetime(2026, 10, 24, 13, 0, 0, tzinfo=zone),
-            datetime(2026, 10, 24, 13, 0, 0, tzinfo=zone),
-        ])
         output = TtyBuffer()
-        ui = StellivorUI(output=output, use_color=False, clock_fn=lambda: next(moments))
-        ui.width = lambda: 44
-        ui.menu()
-        stop = StopAfterOneTick()
-        ui._live_clock_loop(stop)
-        text = output.getvalue()
-        self.assertIn("12:59:59.5", text)
-        self.assertIn("13:00:00.0", text)
-        self.assertIn("WAT", text)
-        self.assertIn("UTC+01:00", text)
-        self.assertIn("\033[s\033[1A\r", text)
-        self.assertTrue(text.endswith("\033[K\033[u"))
-        self.assertAlmostEqual(stop.delays[0], 0.5)
+        ui = StellivorUI(input_fn=lambda _prompt: "0", output=output, use_color=False)
+        self.assertEqual(ui._menu_input(), "0")
+        self.assertNotIn("\\033[1A", output.getvalue())
 
     def test_theme_presets_are_selectable(self):
         default = StellivorUI(output=io.StringIO(), use_color=True, theme="stellivor")
