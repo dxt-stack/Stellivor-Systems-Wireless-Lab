@@ -77,7 +77,7 @@ def saved_profile_key(profile: str, info: PlatformInfo | None = None) -> tuple[s
         if not result.succeeded:
             return None, "Access denied" if result.status == Status.PERMISSION_RESTRICTED else "Key unavailable"
         for line in result.data.get("stdout", "").splitlines():
-            match = re.match(r"^\\s*Key Content\\s*:\\s*(.*?)\\s*$", line, re.IGNORECASE)
+            match = re.match(r"^\s*Key Content\s*:\s*(.*?)\s*$", line, re.IGNORECASE)
             if match and match.group(1):
                 return match.group(1), "Available"
         return None, "No stored key (open network, enterprise auth, or localized output)"
