@@ -80,12 +80,10 @@ John's recovered-result output remains available locally in the operator's termi
 
 ## Run on Android / Termux
 
-Python **3.10+** is required; the core is standard-library only. For a ZIP in Android Downloads, make sure Termux storage access has already been set up, then:
+Python **3.10+** is required; the core is standard-library only. After making the repository public, clone the source directly in Termux:
 
 ```sh
-mkdir -p ~/stellivor-0.5.3
-cd ~/stellivor-0.5.3
-python -m zipfile -e ~/storage/downloads/STELLIVOR-Systems-Wireless-Lab-0.5.3.zip .
+git clone https://github.com/dxt-stack/Stellivor-Systems-Wireless-Lab.git
 cd Stellivor-Systems-Wireless-Lab
 python -m unittest discover -s tests -v
 python main.py
