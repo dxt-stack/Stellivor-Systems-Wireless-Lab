@@ -27,6 +27,11 @@ from .security_lab import HARDENING_CHECKLIST, estimate_passphrase_strength
 from .system_info import collect_system_info
 from .tools import discover_tools
 from .wireless import wireless_snapshot
+from .wireless_inspector import (
+    current_connection, inspect_saved_profile, network_configuration,
+    nearby_networks, refresh_wireless_information, saved_profile_names,
+)
+from .credential_audit import audit_tool_status, john_information, run_local_audit
 
 
 _OUTLINE_FONT: dict[str, tuple[str, ...]] = {
@@ -570,37 +575,159 @@ class StellivorUI:
 
     def wireless_security_menu(self) -> None:
         while self.running:
-            self.panel("WIRELESS SECURITY LAB  /  DEFENSIVE", [
-                "1  Review a permitted wireless snapshot",
-                "2  Estimate a test passphrase (hidden input; never saved)",
-                "3  Router hardening checklist",
-                "4  Safe recovery guidance for your own router",
+            self.panel("WI-FI INSPECTOR  /  WIRELESS & SECURITY", [
+                "1  List saved Wi-Fi profile names (no keys)",
+                "2  Inspect a saved profile (metadata only)",
+                "3  Scan nearby Wi-Fi networks",
+                "4  Show current Wi-Fi connection",
+                "5  Show adapters, IP configuration and routes",
+                "6  Refresh wireless information",
+                "7  Review current Wi-Fi security",
+                "8  Estimate a test passphrase (hidden input)",
+                "9  Router hardening checklist",
+                "10 Owner recovery guidance",
+                "11 Local credential-audit workbench (John the Ripper)",
                 "0  Back",
             ])
-            choice = self.input_fn("Select: ").strip()
+            choice = self.input_fn("Select: ").strip().lower()
             if choice == "0":
                 return
-            submenu_labels = {"1": "WIRELESS SNAPSHOT", "2": "PASSPHRASE ESTIMATE", "3": "HARDENING CHECKLIST", "4": "OWNER RECOVERY"}
-            if choice in submenu_labels:
-                self._dragon_transition(submenu_labels[choice])
+            labels = {
+                "1": "SAVED WI-FI PROFILES", "2": "PROFILE INSPECTION",
+                "3": "NEARBY WI-FI SCAN", "4": "CURRENT CONNECTION",
+                "5": "NETWORK ADAPTERS", "6": "REFRESH WIRELESS DATA",
+                "7": "WI-FI SECURITY REVIEW", "8": "PASSPHRASE ESTIMATE",
+                "9": "ROUTER HARDENING", "10": "OWNER RECOVERY",
+                "11": "LOCAL CREDENTIAL AUDIT",
+            }
+            if choice in labels:
+                self._dragon_transition(labels[choice])
             if choice == "1":
-                self.record(wireless_snapshot())
+                self.record(saved_profile_names())
             elif choice == "2":
+                profiles = saved_profile_names()
+                self.record(profiles)
+                names = profiles.data.get("profiles", []) if profiles.succeeded else []
+                if not names:
+                    self.write("No inspectable saved profile names were returned.")
+                    continue
+                for index, name in enumerate(names, 1):
+                    self.write(f"  {index}. {name}")
+                selected = self.prompt("Profile number (or Q to cancel)").lower()
+                if selected == "q":
+                    continue
+                if selected.isdigit() and 1 <= int(selected) <= len(names):
+                    self.record(inspect_saved_profile(names[int(selected) - 1]))
+                else:
+                    self.write("Choose one of the listed profile numbers.")
+            elif choice == "3":
+                self.record(nearby_networks())
+            elif choice == "4":
+                self.record(current_connection())
+            elif choice == "5":
+                self.record(network_configuration())
+            elif choice == "6":
+                self.record(refresh_wireless_information())
+            elif choice == "7":
+                snapshot = wireless_snapshot()
+                self.record(snapshot)
+                self.record(self._wireless_security_assessment(snapshot))
+            elif choice == "8":
                 try:
-                    password = getpass.getpass("Enter a test phrase (input hidden): ")
+                    password = getpass.getpass("Enter a test phrase (input hidden; do not use a real account password): ")
                 except (EOFError, KeyboardInterrupt):
                     self.write("Cancelled; no estimate was recorded.")
                     continue
                 result = estimate_passphrase_strength(password)
                 del password
                 self.record(result)
-            elif choice == "3":
+            elif choice == "9":
                 self.hardening_checklist()
-            elif choice == "4":
+            elif choice == "10":
                 self.recovery_guidance()
+            elif choice == "11":
+                self.credential_audit_menu()
             else:
                 self.write("Choose one of the displayed numbers.")
 
+    def _wireless_security_assessment(self, snapshot: Result) -> Result:
+        """Classify only security fields actually present in adapter output."""
+        sections = snapshot.data.get("sections", {})
+        evidence: list[dict[str, str]] = []
+        for section_name, section in sections.items():
+            data = section.get("data", {}) if isinstance(section, dict) else {}
+            raw = " ".join(str(value) for value in data.values()).lower()
+            if not raw:
+                continue
+            if "wpa3" in raw:
+                level = "WPA3 reported"
+            elif "wpa2" in raw:
+                level = "WPA2 reported"
+            elif "wep" in raw:
+                level = "WEP reported"
+            elif "open" in raw and ("security" in raw or "auth" in raw):
+                level = "Open network may be reported"
+            else:
+                continue
+            evidence.append({"section": section_name, "assessment": level})
+        status = Status.WARNING if evidence else Status.UNSUPPORTED
+        return Result(
+            "wireless_inspector", "security_review", status,
+            "Security hints were derived only from fields returned by the platform; this is not a full router audit.",
+            {"evidence": evidence, "read_only": True, "keys_requested": False},
+            warnings=["Confirm authentication and cipher details in your router's official management interface. Missing fields are unknown, not proof of security."],
+        )
+
+    def credential_audit_menu(self) -> None:
+        while self.running:
+            self.panel("LOCAL CREDENTIAL AUDIT  /  AUTHORIZED HASH FILES", [
+                "1  Check John the Ripper / Hashcat availability",
+                "2  John quick help",
+                "3  John build information",
+                "4  List supported John formats",
+                "5  Single mode on a local authorized hash file",
+                "6  Wordlist mode on a local authorized hash file",
+                "7  Wordlist + rules mode",
+                "8  Show recovered results from a local hash file",
+                "9  Check named John session status",
+                "10 Resume named John session",
+                "Q  Back",
+            ])
+            choice = self.input_fn("Select: ").strip().lower()
+            if choice == "q":
+                return
+            if choice == "1":
+                self.record(audit_tool_status())
+                continue
+            if choice in {"2", "3", "4"}:
+                action = {"2": "help", "3": "build", "4": "formats"}[choice]
+                self.record(john_information(action))
+                continue
+            if choice in {"5", "6", "7"}:
+                mode = {"5": "single", "6": "wordlist", "7": "rules"}[choice]
+                hash_file = self.prompt("Path to your local authorized hash file")
+                wordlist = self.prompt("Path to local wordlist") if mode in {"wordlist", "rules"} else None
+                session = self.prompt("Session name (letters/numbers/_/-; optional)")
+                if not self.prompt("Confirm you own or have explicit permission to audit this hash file [y/N]").lower() == "y":
+                    self.write("Cancelled. No audit was started.")
+                    continue
+                self.record(run_local_audit(mode, hash_file, wordlist=wordlist or None,
+                                            session=session or None, authorized=True))
+                continue
+            if choice == "8":
+                hash_file = self.prompt("Path to the same local authorized hash file")
+                self.record(john_information("show", hash_file=hash_file))
+            elif choice == "9":
+                session = self.prompt("Saved session name")
+                self.record(john_information("status", session=session))
+            elif choice == "10":
+                session = self.prompt("Saved session name to resume")
+                if self.prompt("Resume this local John session [y/N]").lower() == "y":
+                    self.record(john_information("resume", session=session))
+                else:
+                    self.write("Resume cancelled.")
+            else:
+                self.write("Choose one of the displayed options.")
     def hardening_checklist(self) -> None:
         checked: set[int] = set()
         while True:
