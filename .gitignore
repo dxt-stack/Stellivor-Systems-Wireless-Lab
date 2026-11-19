@@ -5,3 +5,18 @@ __pycache__/
 reports/
 *.tmp
 .DS_Store
+
+# Local secrets and operator-owned audit material
+.env
+.env.*
+!.env.example
+*.pot
+*.potfile
+*.session
+*.rec
+*.hashes
+*.wordlist
+*.wordlist.txt
+hashes/
+wordlists/
+credential-audit/
