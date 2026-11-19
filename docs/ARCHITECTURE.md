@@ -10,10 +10,12 @@ STELLIVOR separates a shared Python core from a replaceable terminal interface. 
 - `stellivor/system_info.py`: local OS/runtime and memory/storage snapshots; optional filtered Termux battery status when the user selects the profile.
 - `stellivor/network.py`: host validation, DNS, a single TCP connection attempt, and native interface/route adapters.
 - `stellivor/wireless.py`: read-only OS-specific wireless snapshots and Termux:API boundaries.
+- `stellivor/wireless_inspector.py`: saved-profile listing/metadata, explicit local saved-key display on supported Windows/Linux systems, nearby/current Wi-Fi information, and network-configuration snapshots.
+- `stellivor/credential_audit.py`: optional local John the Ripper operations against operator-supplied hash files, with an explicit authorization gate; Hashcat is detected but not invoked by the current workbench.
 - `stellivor/connections.py`: local listening TCP snapshots.
 - `stellivor/file_intel.py`: read-only metadata, hashing, integrity verification, signature hints, and bounded strings.
 - `stellivor/sdr.py`: synthetic IQ and deterministic educational signal analysis only.
-- `stellivor/security_lab.py`: defensive local passphrase heuristic and router-hardening guidance; no key extraction or cracking.
+- `stellivor/security_lab.py`: defensive local passphrase heuristic and router-hardening guidance.
 - `stellivor/tools.py`: optional executable discovery without claiming functionality/hardware verification.
 - `stellivor/device.py`: read-only ADB version/device inventory and authorized-device readiness; no arbitrary remote commands or state changes.
 - `stellivor/reports.py`: local JSON/Markdown reports and atomic file writes.
@@ -25,7 +27,7 @@ STELLIVOR separates a shared Python core from a replaceable terminal interface. 
 
 ## UI and startup
 
-The terminal emblem is rendered from pre-sampled pixels of the bundled image; its colors are brightened and saturated for true-colour ANSI/Braille output, with a lifted grayscale/ASCII fallback. The wordmark uses outlined strokes and adapts to narrow terminals. On interactive terminals the startup clock uses actual local time and includes timezone/UTC offset; while the landing menu waits for input, it refreshes each second and visibly rolls through minutes and hours. At the menu, `P` + Enter pauses/resumes the ticker; a pause stops periodic terminal writes to allow scrollback. Valid operation selections progressively reveal their short label across four frames beside the dragon mark before opening/running; the transition is bounded to about 0.18 seconds. `--no-animation` disables motion and live ticking. Interactive results are revealed line by line with a per-result delay cap; `--fast-output` disables pacing. ANSI palettes are selectable. No network/radio/hardware scan runs before the user selects an action. The one-choice quick-audit bundle is read-only and omits DNS/TCP probing and Wi-Fi scans.
+The terminal emblem is rendered from pre-sampled pixels of the bundled image; its colors are brightened and saturated for true-colour ANSI/Braille output, with a lifted grayscale/ASCII fallback. The wordmark uses outlined strokes and adapts to narrow terminals. On interactive terminals the startup clock briefly uses actual local time and includes timezone/UTC offset. The landing-menu timestamp is static so periodic redraws do not interfere with terminal scrollback. `P` is retained as an informational input; it does not pause a live ticker. Valid operation selections progressively reveal their short label across four frames beside the dragon mark before opening/running; the transition is bounded to about 0.18 seconds. `--no-animation` disables startup and selection motion. Result output is immediate and batched by default; `--paced-output` enables the optional gradual reveal, while `--fast-output` selects immediate output. ANSI palettes are selectable. No network/radio/hardware scan runs before the user selects an action. The one-choice quick-audit bundle is read-only and omits DNS/TCP probing and Wi-Fi scans.
 
 The high-resolution dragon-and-star logo remains in `assets/`; `stellivor/brandmark.py` contains the compact terminal raster. Runtime needs no imaging library.
 
@@ -41,9 +43,13 @@ Commands are argument arrays executed with `shell=False`, timeouts, and bounded 
 
 Platform adapters receive explicit `PlatformInfo`. Termux is treated as Android, not as an unrestricted desktop Linux system.
 
-## Wireless-security boundary
+## Wireless and credential-audit boundaries
 
-Wireless inspection is read-only and capability-aware. Saved profile names may be listed where supported; keys are never requested. The passphrase estimator evaluates a string in memory and returns derived metadata only; it does not return, save, log, transmit, crack, or compare the passphrase against external sources. The recovered predecessor's `key=clear` and John/Hashcat workflows are intentionally not part of STELLIVOR.
+Wireless discovery and profile metadata are capability-aware. Saved Wi-Fi profile names may be listed where supported. On Windows and Linux, an explicit interactive action can request and display a key already stored for a selected local profile. Android/Termux does not expose other applications' saved Wi-Fi credentials through this adapter; macOS key retrieval is not implemented. Displayed key values are transient: they are not put in serializable `Result` objects, session history, logs, or report exports.
+
+The local credential-audit workbench invokes John the Ripper only against a hash file supplied by the operator, with a local wordlist when the selected mode requires one. The interactive run path requires explicit confirmation that the operator owns or is authorized to assess the file. Hashcat availability is detected, but the current workbench does not invoke Hashcat. No hashes are collected from networks or devices, and no remote credential attempts are made. John output may contain recovered credentials; it remains visible locally, is excluded from report exports by default, and requires an explicit opt-in before inclusion in a private report. Hash files, wordlists, pot/session files, and recovered output must be kept private.
+
+The passphrase estimator is separate from the credential-audit workbench: it evaluates a user-entered test phrase in memory and returns derived metadata only. It does not return, save, log, transmit, or compare the phrase against external sources.
 
 ## File and SDR boundaries
 
@@ -53,4 +59,4 @@ The SDR module generates mathematical complex samples and labels them as simulat
 
 ## Reports and testing
 
-Reports are local and manually exported. They preserve errors and limitations, with a privacy notice. Tests cover deterministic behavior and mocked platform outputs; real device and hardware integrations require separately recorded testing on each platform.
+Reports are local and manually exported. They preserve errors and limitations, with a privacy notice. Credential-audit stdout/stderr is excluded by default; explicit inclusion is intended only for a private report destination. Tests cover deterministic behavior and mocked platform outputs; real device and hardware integrations require separately recorded testing on each platform.
