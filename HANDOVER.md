@@ -1,7 +1,8 @@
 # STELLIVOR // SYSTEMS & WIRELESS LAB — PROJECT HANDOVER
 
 **Current release:** 0.6.0  
-**Project status:** Implemented and covered by deterministic tests. Real-device validation remains platform-specific; mocked tests do not establish native Windows/Linux behavior.
+**Code baseline:** `f1a15a5`  
+**Project status:** The deterministic suite passes locally and in the Python 3.10–3.13 GitHub Actions matrix. Real-device validation remains platform-specific; mocked tests do not establish native Windows/macOS behavior or live wireless hardware support.
 
 ## Purpose
 
@@ -12,36 +13,41 @@ STELLIVOR is a dependency-light, offline-first workbench for local system diagno
 - Local system profile, interface/route/listening-socket snapshots, selected DNS and one-attempt TCP diagnostics.
 - Read-only file metadata, bounded printable-string hints, SHA-256 hashing and verification.
 - Synthetic-only IQ generation and signal analysis; no live RF capture path.
-- Defensive wireless snapshot, rough local test-phrase estimate, router-hardening checklist, and owner recovery guidance.
+- Wireless snapshots, saved-profile metadata, explicit local saved-key display on supported Windows/Linux systems, current connection details, and network-configuration inspection.
+- Defensive wireless review hints, rough local test-phrase estimate, router-hardening checklist, and owner recovery guidance.
+- Optional local John the Ripper audit against operator-supplied hash files, with explicit authorization confirmation in the interactive run flow. Hashcat is detected but not invoked. John output is visible locally and excluded from reports by default; private-report inclusion requires explicit opt-in.
 - Local report export, selected tool-presence checks, and a read-only quick audit.
 - Direct JSON-capable CLI commands and a read-only authorized ADB/device readiness check.
-- Responsive terminal UI with the original dragon-and-star emblem rendered in brighter, more saturated colors, outlined STELLIVOR wordmark, themes, actual local clock/timezone/UTC offset that ticks each second while the landing menu waits, `P` + Enter pause/resume control for scrollback, paced result lines, and a brief progressive option-label/dragon cue.
+- Responsive terminal UI with the original dragon-and-star emblem, outlined STELLIVOR wordmark, themes, brief startup clock, static landing-menu timestamp, selection cue, immediate output by default, and optional paced output.
 - Interactive shortcuts for help (`?`), command palette (`/`), rerun (`r`), export (`e`), and quit (`q`).
 
-## Wireless Inspector reuse and limits
+## Wireless and credential-audit privacy
 
-Reviewed safe concepts from the supplied WiFi Inspector project were incorporated: wireless status, defensive security guidance, a hardening checklist, local test-phrase estimation, and safe owner recovery guidance. An explicit local saved-profile action displays Wi-Fi keys already stored by Windows WLAN or Linux NetworkManager where permissions permit. Keys are transient and excluded from Result objects, session history, logs, and report exports. Android/Termux restricts access to saved Wi-Fi credentials; macOS retrieval is not implemented. This is not nearby-network password discovery. Handshake capture, network hash harvesting, remote credential attempts, backdoors, and unauthorized attack features are not included.
+Saved Wi-Fi keys can be requested only through an explicit local interactive action on supported Windows/Linux platforms. Key values are transient and excluded from serializable results, session history, logs, and report exports. Android/Termux saved-profile key access is unsupported; macOS retrieval is not implemented.
 
-## Operational and privacy boundaries
+The John workbench accepts local operator-supplied hash files and, for selected modes, local wordlists. It does not collect hashes from networks or devices or make remote credential attempts. Treat hash files, wordlists, pot/session files, and recovered output as sensitive. Review reports before sharing.
+
+## Operational boundaries
 
 - No startup scans, fake progress, telemetry, or cloud reporting.
-- No automatic installation, root requirement, credential capture, or archive execution.
+- No automatic installation, root requirement, credential capture, handshake capture, or archive execution.
 - Native commands use argument arrays, bounded output, and timeouts; inspected files are read-only.
 - Reports remain local until a user chooses to share them.
-- Network actions run only when selected; use them only on systems and networks the user owns or is authorized to inspect.
+- Network actions run only when selected; use them only on systems and networks the user owns or are authorized to inspect.
 
 ## Run and test
 
 From the project root:
 
 ```sh
+python -m compileall -q stellivor tests main.py
 python -m unittest discover -s tests -v
 python main.py
 python main.py --theme ember
 python main.py --fast-output --no-animation
 ```
 
-The 0.6.0 release extends the deterministic suite with ADB parsing and CLI checks. Workspace QA covers the current CLI, non-interactive behavior, and terminal animation with controlled clocks/fake TTYs; a pseudo-terminal check observed real per-second ticks and confirmed that the pause control stops further writes. The current release still needs on-device visual confirmation in Termux.
+The maintainer reported 101 passing tests in Termux. GitHub Actions run `44540449096` passed compilation and tests on Python 3.10, 3.11, 3.12, and 3.13. The current release still needs deliberate on-device visual and native-integration confirmation in Termux; Windows and macOS native adapters also need testing on those operating systems.
 
 ## Project layout
 
