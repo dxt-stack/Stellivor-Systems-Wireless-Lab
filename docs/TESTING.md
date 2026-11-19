@@ -19,8 +19,8 @@ Version 0.6.0 contains 75 deterministic tests covering:
 - hostname validation and mocked DNS/TCP outcomes without external network access;
 - representative Linux and Termux wireless adapter parsing with mocked commands, not real radio scans;
 - local passphrase-estimator behavior, no-secret-return guarantee, and hardening checklist;
-- tool-discovery semantics; brighter true-colour emblem, outlined/ASCII wordmark, startup and per-second live local clock with timezone/offset, pause/resume without background writes, progressive selection-label reveal before content with a bounded dragon cue, non-TTY immediacy, narrow-panel wrapping, and the read-only quick-audit bundle; filtered Termux battery data;
-- paced interactive result reveal with a bounded delay, semantic JSON colors, and selectable theme palettes.
+- tool-discovery semantics; brighter true-colour emblem, outlined/ASCII wordmark, startup clock animation with timezone/offset and a static scrollback-safe menu clock, progressive selection-label reveal before content with a bounded dragon cue, non-TTY immediacy, narrow-panel wrapping, and the read-only quick-audit bundle; filtered Termux battery data;
+- paced interactive result reveal at a readable bounded delay, semantic JSON colors, and selectable theme palettes.
 - ADB device-line parsing, honest missing-ADB behavior, unsupported high-risk operation metadata, and machine-readable direct CLI output.
 
 A passing test suite proves only those tested behaviors in the recorded environment. It does not prove Termux, Windows, macOS, wireless hardware, or live network behavior.
@@ -35,7 +35,7 @@ python main.py system --json
 python main.py device readiness --json
 ```
 
-Expected: version is `STELLIVOR 0.6.0`; the noninteractive menu exits cleanly; system JSON is valid; direct commands emit valid JSON. A missing ADB installation is reported as `dependency_missing`, not as a fake device success. Non-TTY output stays immediate, and no diagnostic runs automatically. On an interactive terminal, the actual local clock shows timezone/offset at startup and continues ticking once per second while the landing menu waits. Press `P` + Enter to stop ticker writes for scrollback; valid selections show the progressive dragon cue.
+Expected: version is `STELLIVOR 0.6.0`; the noninteractive menu exits cleanly; system JSON is valid; direct commands emit valid JSON. A missing ADB installation is reported as `dependency_missing`, not as a fake device success. Non-TTY output stays immediate, and no diagnostic runs automatically. On an interactive terminal, the actual local clock animates briefly at startup; the menu timestamp stays static so cursor redraws do not interfere with scrollback. Interactive result lines use a readable bounded reveal delay; use `--fast-output` to disable pacing. Valid selections show the progressive dragon cue.
 
 ## Termux validation checklist
 
