@@ -10,7 +10,7 @@ Version: **0.6.0**.
 
 ## A terminal that feels like a workbench
 
-The terminal renders the selected dragon-and-star emblem as compact true-colour Braille art, with brighter, more saturated colors and an outlined STELLIVOR wordmark. On interactive terminals, startup briefly animates the **actual local clock**, timezone abbreviation, and UTC offset; while the landing menu waits for input, the seconds keep ticking and roll through minutes and hours. At the menu, type `P` then Enter to pause the live clock before scrolling back; press it again to resume. Pausing stops periodic terminal writes. Choosing an operation reveals its short label in a smooth, brief text transition beside the tiny dragon mark, before that option's content appears. These are interface cues only—no scans or diagnostics run until selected. Result lines reveal at a brief bounded pace with semantic colors; choose `stellivor`, `ember`, or `ice`, and use `--fast-output` to remove result pacing. `--no-animation` keeps the clock static and disables dragon transitions; non-interactive output stays immediate.
+The terminal renders the selected dragon-and-star emblem as compact true-colour Braille art, with brighter, more saturated colors and an outlined STELLIVOR wordmark. On interactive terminals, startup briefly animates the **actual local clock**, timezone abbreviation, and UTC offset. The landing menu keeps a static timestamp instead of repeatedly moving the terminal cursor, preserving normal scrollback on mobile terminals such as Termux. Choosing an operation reveals its short label in a smooth, brief text transition beside the tiny dragon mark, before that option's content appears. These are interface cues only—no scans or diagnostics run until selected. Interactive result details are rendered immediately in batched terminal writes by default, with semantic colors; choose `stellivor`, `ember`, or `ice`. Use `--paced-output` only if you prefer the gradual line reveal; `--fast-output` remains as a backwards-compatible immediate-output flag. `--no-animation` disables startup and dragon transitions; non-interactive output stays immediate.
 
 ```sh
 python main.py --theme ember
@@ -51,24 +51,39 @@ python main.py device readiness --json
 python main.py file inspect ./examples/sample_report.json --json
 python main.py integrity verify ./examples/sample_report.json SHA256_DIGEST --json
 python main.py sdr simulate --frequency 1000 --count 1024 --json
+python main.py wifi profiles --json
+python main.py wifi nearby --json
+python main.py wifi connection --json
+python main.py wifi adapters --json
+python main.py wifi refresh --json
 ```
 
 `device readiness` checks the local `adb` installation, lists visible device states, distinguishes authorized from pending devices, and reports optional `scrcpy` availability. It never bypasses authentication, guesses a PIN, executes an arbitrary device shell, installs an APK, captures private data, or changes device state. See [`docs/CILOCKS_REVIEW.md`](docs/CILOCKS_REVIEW.md) for the CiLocks compatibility and licensing boundary.
 
-## Safe WiFi Inspector reuse
+## Wi-Fi Inspector integration
 
-The supplied WiFi Inspector archive was reviewed before integration. Stellivor reuses the safe product ideas—wireless status, security guidance, a checklist, and a local passphrase estimate—through its own modular, capability-aware code.
+The supplied Wi-Fi Inspector archive is integrated through STELLIVOR's existing Result/status model, platform detection, terminal UI, direct CLI, and tests. It does not replace the project structure.
 
-**Not included:** saved Wi-Fi key extraction (`key=clear`), John the Ripper/Hashcat password-cracking workflows, handshake capture, backdoor tools, exploit menus, or unauthorized attack features. On Windows, Stellivor can show saved profile names where native support permits; it does not request key material. Android/Termux cannot be assumed to expose saved profiles.
+- Saved Wi-Fi profile names and, on supported systems, locally stored Wi-Fi keys displayed on explicit request. Keys are never added to session results or report exports.
+- Nearby Wi-Fi scan, current connection details, and a refresh operation.
+- Network interfaces, IP configuration, and route snapshots.
+- Read-only Wi-Fi security hints, owner recovery guidance, local passphrase estimate, and interactive router-hardening checklist.
+- Optional John the Ripper / Hashcat detection. The John workbench supports local single, wordlist, and wordlist+rules modes, recovered-result display, named session status, and resume for hash files supplied by the operator. Every run requires an explicit authorization confirmation and uses local files only.
+
+Platform limitations are explicit: Windows uses native WLAN commands; Linux uses NetworkManager where installed; Termux uses Termux:API where installed and permitted. Android does not expose other applications' saved Wi-Fi profiles. Unsupported or permission-limited operations are reported as such, never disguised as empty successful scans.
+
+**Wi-Fi key display:** When you explicitly choose the saved-profile reveal action, STELLIVOR requests locally stored keys from the operating system and displays available values in the terminal. Windows uses the native WLAN profile command with key=clear; Linux uses NetworkManager nmcli --show-secrets. This is local inspection of profiles already saved on your device—not nearby-network password discovery, remote collection, or a network attack. Android/Termux restricts access to saved Wi-Fi credentials; macOS key retrieval is not implemented yet. Keys are transient: they are not placed in session Result objects, logs, or JSON/Markdown reports. Review terminal scrollback before sharing screenshots.
+
+STELLIVOR does not capture handshakes, harvest hashes from networks/devices, or send credential material to a service. John operates only on a local hash file and optional local wordlist that you supply and are authorized to audit. Hash files, John session files, john.pot, and recovered results are sensitive; keep them private. Tool detection does not install or validate tools.
+
+John's recovered-result output remains available locally in the operator's terminal/session; this functionality is not removed or suppressed. JSON/Markdown report exports exclude credential-audit stdout/stderr by default while preserving the other audit metadata. The interactive export flow asks before including that sensitive output in a private report. Never commit hash files, pot/session files, recovered credentials, or sensitive reports. See [`SECURITY.md`](SECURITY.md).
 
 ## Run on Android / Termux
 
-Python **3.10+** is required; the core is standard-library only. For a ZIP in Android Downloads, make sure Termux storage access has already been set up, then:
+Python **3.10+** is required; the core is standard-library only. After making the repository public, clone the source directly in Termux:
 
 ```sh
-mkdir -p ~/stellivor-0.5.3
-cd ~/stellivor-0.5.3
-python -m zipfile -e ~/storage/downloads/STELLIVOR-Systems-Wireless-Lab-0.5.3.zip .
+git clone https://github.com/dxt-stack/Stellivor-Systems-Wireless-Lab.git
 cd Stellivor-Systems-Wireless-Lab
 python -m unittest discover -s tests -v
 python main.py

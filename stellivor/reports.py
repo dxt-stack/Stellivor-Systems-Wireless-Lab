@@ -13,10 +13,20 @@ from typing import Iterable, Sequence
 from . import __version__
 from .core import Result, Status, detect_platform, to_primitive, utc_now
 
-PRIVACY_NOTICE = "This report may contain private hostnames, IP/MAC addresses, file paths, usernames, or machine details. Review it before sharing. STELLIVOR never uploads it automatically."
+PRIVACY_NOTICE = (
+    "This report may contain private hostnames, IP/MAC addresses, file paths, usernames, "
+    "machine details, or local credential-audit output. Review it before sharing. "
+    "STELLIVOR never uploads it automatically. Credential-audit output is excluded by "
+    "default; explicitly opt in only when the report will remain private."
+)
 
 
-def build_report(results: Iterable[Result], *, title: str = "STELLIVOR Diagnostic Report") -> dict:
+def build_report(
+    results: Iterable[Result],
+    *,
+    title: str = "STELLIVOR Diagnostic Report",
+    include_sensitive: bool = False,
+) -> dict:
     materialized = list(results)
     if not materialized:
         raise ValueError("At least one diagnostic result is required.")
@@ -25,6 +35,20 @@ def build_report(results: Iterable[Result], *, title: str = "STELLIVOR Diagnosti
     clean_title = title.strip() if isinstance(title, str) else ""
     if not clean_title or len(clean_title) > 120:
         raise ValueError("Report title must contain 1-120 characters.")
+
+    serialized_results = []
+    for result in materialized:
+        serialized = result.to_dict()
+        if result.module == "credential_audit" and not include_sensitive:
+            data = serialized.get("data")
+            if isinstance(data, dict):
+                data.pop("output", None)
+                data.pop("stdout", None)
+                data.pop("stderr", None)
+                serialized["data"] = data
+                serialized["sensitive_output_excluded"] = True
+        serialized_results.append(serialized)
+
     return {
         "schema": "stellivor.report.v1",
         "title": clean_title,
@@ -33,8 +57,9 @@ def build_report(results: Iterable[Result], *, title: str = "STELLIVOR Diagnosti
         "environment": {"platform_adapter": detect_platform().name, "python_version": __import__("platform").python_version()},
         "privacy_notice": PRIVACY_NOTICE,
         "uploaded": False,
+        "sensitive_output_included": bool(include_sensitive),
         "result_count": len(materialized),
-        "results": [result.to_dict() for result in materialized],
+        "results": serialized_results,
     }
 
 
@@ -62,6 +87,8 @@ def render_markdown(report: dict) -> str:
             f"- Summary: {result['summary']}",
             "",
         ])
+        if result.get("sensitive_output_excluded"):
+            lines.extend(["- Sensitive local credential-audit output: **excluded**", ""])
         if result.get("errors"):
             lines.append("**Errors**")
             lines.append("")
@@ -106,9 +133,10 @@ def save_report(
     *,
     formats: Sequence[str] = ("json", "markdown"),
     stem: str | None = None,
+    include_sensitive: bool = False,
 ) -> Result:
     try:
-        report = build_report(results)
+        report = build_report(results, include_sensitive=include_sensitive)
         safe_stem = _safe_stem(stem)
         if not formats:
             raise ValueError("Select at least one report format.")
@@ -138,6 +166,12 @@ def save_report(
         "save_report",
         Status.SUCCESS,
         f"Saved {len(written)} local report file(s).",
-        data={"files": written, "formats": normalized, "uploaded": False, "result_count": report["result_count"]},
+        data={
+            "files": written,
+            "formats": normalized,
+            "uploaded": False,
+            "result_count": report["result_count"],
+            "sensitive_output_included": bool(include_sensitive),
+        },
         warnings=[PRIVACY_NOTICE],
     )

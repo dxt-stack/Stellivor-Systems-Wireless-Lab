@@ -82,7 +82,65 @@ class AdapterTests(unittest.TestCase):
         self.assertEqual(result.data["sections"]["saved_profile_names"]["status"], "unsupported")
 
 
+    @patch("stellivor.wireless_inspector.run_command")
+    def test_windows_saved_profile_key_is_parsed_without_shell(self, command):
+        from stellivor.wireless_inspector import saved_profile_key
+        command.return_value = Result(
+            "wireless_inspector", "saved_profile_key", Status.SUCCESS, "ok",
+            data={"stdout": "    Key Content            : TEST_ONLY_NOT_A_REAL_PASSWORD\n"},
+        )
+        key, state = saved_profile_key("Home WiFi", PlatformInfo("windows", "Windows"))
+        self.assertEqual(key, "TEST_ONLY_NOT_A_REAL_PASSWORD")
+        self.assertEqual(state, "Available")
+        args = command.call_args.args[0]
+        self.assertEqual(args, ["netsh", "wlan", "show", "profile", "name=Home WiFi", "key=clear"])
+        self.assertNotIn("shell", command.call_args.kwargs)
+
+    @patch("stellivor.wireless_inspector.run_command")
+    def test_linux_saved_profile_key_uses_nmcli_show_secrets(self, command):
+        from stellivor.wireless_inspector import saved_profile_key
+        command.return_value = Result(
+            "wireless_inspector", "saved_profile_key", Status.SUCCESS, "ok",
+            data={"stdout": "TEST_ONLY_NOT_A_REAL_PASSWORD\\n"},
+        )
+        key, state = saved_profile_key("Home", PlatformInfo("linux", "Linux"))
+        self.assertEqual(key, "TEST_ONLY_NOT_A_REAL_PASSWORD")
+        self.assertEqual(state, "Available")
+        self.assertEqual(command.call_args.args[0], [
+            "nmcli", "--show-secrets", "-g", "802-11-wireless-security.psk",
+            "connection", "show", "Home",
+        ])
+
+    def test_android_saved_profile_key_is_truthfully_unsupported(self):
+        from stellivor.wireless_inspector import saved_profile_key
+        key, state = saved_profile_key("Home", PlatformInfo("termux", "Linux", True, True))
+        self.assertIsNone(key)
+        self.assertIn("Android restricts", state)
+
+    def test_saved_profile_key_rejects_control_characters(self):
+        from stellivor.wireless_inspector import saved_profile_key
+        key, state = saved_profile_key("Home\\nInjected", PlatformInfo("windows", "Windows"))
+        self.assertIsNone(key)
+        self.assertEqual(state, "Invalid profile name")
+
+
 class UITests(unittest.TestCase):
+
+    @patch("stellivor.ui.saved_profile_key", return_value=("TEST_ONLY_NOT_A_REAL_PASSWORD", "Available"))
+    @patch("stellivor.ui.saved_profile_names")
+    def test_saved_profile_reveal_displays_key_but_never_records_it(self, profiles, key_lookup):
+        profiles.return_value = Result(
+            "wireless_inspector", "saved_profiles", Status.SUCCESS, "profiles",
+            data={"profiles": ["Test Network"], "count": 1},
+        )
+        answers = iter(["1", "y", "0"])
+        output = io.StringIO()
+        ui = StellivorUI(input_fn=lambda _prompt: next(answers), output=output, use_color=False)
+        ui.wireless_security_menu()
+        self.assertIn("Test Network  |  KEY: TEST_ONLY_NOT_A_REAL_PASSWORD", output.getvalue())
+        self.assertNotIn("TEST_ONLY_NOT_A_REAL_PASSWORD", repr(ui.results))
+        key_lookup.assert_called_once_with("Test Network")
+
     def test_menu_exit_without_network_or_tools(self):
         output = io.StringIO()
         ui = StellivorUI(input_fn=lambda _prompt: "0", output=output, use_color=False)
@@ -170,7 +228,7 @@ class UITests(unittest.TestCase):
         plain = re.sub(r"\x1b\[[0-9;]*m", "", text)
         self.assertLessEqual(max(map(len, plain.splitlines())), 44)
 
-    def test_result_lines_are_paced_and_values_use_semantic_colors(self):
+    def test_default_output_is_immediate_and_uses_semantic_colors(self):
         class TtyBuffer(io.StringIO):
             def isatty(self):
                 return True
@@ -179,13 +237,24 @@ class UITests(unittest.TestCase):
         ui = StellivorUI(output=output, use_color=True, theme="ice", sleep_fn=delays.append)
         ui.print_result(Result("system", "profile", Status.SUCCESS, "Local snapshot ready.", data={"count": 7, "ready": True, "label": "local"}))
         text = output.getvalue()
-        self.assertGreater(len(delays), 5)
-        self.assertEqual(len(delays), len(text.splitlines()))
-        self.assertLessEqual(sum(delays), 0.8)
+        self.assertEqual(delays, [])
         self.assertIn("\033[38;2;91;205;255m", text)  # keys
         self.assertIn("\033[38;2;255;222;140m", text)  # numeric values
         self.assertIn("\033[38;2;214;151;255m", text)  # booleans
         self.assertIn("\033[38;2;99;225;185m", text)  # success state
+
+    def test_paced_output_is_opt_in_and_remains_bounded(self):
+        class TtyBuffer(io.StringIO):
+            def isatty(self):
+                return True
+        output = TtyBuffer()
+        delays = []
+        ui = StellivorUI(output=output, use_color=True, pace_results=True, sleep_fn=delays.append)
+        ui.print_result(Result("system", "profile", Status.SUCCESS, "Local snapshot ready.", data={"count": 7, "ready": True, "label": "local"}))
+        self.assertGreater(len(delays), 5)
+        self.assertEqual(len(delays), len(output.getvalue().splitlines()))
+        self.assertGreater(delays[0], 0.018)
+        self.assertLessEqual(sum(delays), 4.0)
 
     def test_fast_output_bypasses_tty_pacing(self):
         class TtyBuffer(io.StringIO):
@@ -211,63 +280,28 @@ class UITests(unittest.TestCase):
         self.assertLessEqual(len(clock_line), 24)
         self.assertIn("12:34:56 WAT UTC+01:00", clock_line)
 
-    def test_live_clock_pause_toggle_is_available_in_tty_menu(self):
+    def test_menu_clock_is_static_and_preserves_terminal_scrollback(self):
         class TtyBuffer(io.StringIO):
             def isatty(self):
                 return True
-        answers = iter(["p", "p", "0"])
         output = TtyBuffer()
-        ui = StellivorUI(
-            input_fn=lambda _prompt: next(answers), output=output, use_color=False,
-            sleep_fn=lambda _delay: None,
-        )
+        ui = StellivorUI(output=output, use_color=False, sleep_fn=lambda _delay: None)
         self.assertTrue(ui.animate)
-        self.assertTrue(ui.live_clock_enabled)
-        ui.run()
+        self.assertFalse(ui.live_clock_enabled)
+        ui.menu()
         text = output.getvalue()
-        self.assertIn("P+Enter pause clock", text)
-        self.assertIn("P+Enter resume clock", text)
-        self.assertIn("Live clock paused; periodic terminal writes stopped.", text)
-        self.assertIn("Live clock resumed.", text)
-        self.assertTrue(ui.live_clock_enabled)
+        self.assertIn("Scrollback-safe mode", text)
+        self.assertNotIn("\\033[1A", text)
+        self.assertNotIn("\\033[s", text)
 
-    def test_live_clock_rolls_seconds_through_minute_and_hour(self):
-        class StopAfterOneTick:
-            def __init__(self):
-                self.wait_calls = 0
-                self.delays = []
-            def is_set(self):
-                return self.wait_calls >= 2
-            def wait(self, delay):
-                self.delays.append(delay)
-                self.wait_calls += 1
-                return self.wait_calls == 2
-            def set(self):
-                return None
+    def test_menu_input_does_not_start_a_cursor_redraw_thread(self):
         class TtyBuffer(io.StringIO):
             def isatty(self):
                 return True
-        zone = timezone(timedelta(hours=1), "WAT")
-        moments = iter([
-            datetime(2026, 10, 24, 12, 59, 59, 500000, tzinfo=zone),
-            datetime(2026, 10, 24, 12, 59, 59, 500000, tzinfo=zone),
-            datetime(2026, 10, 24, 13, 0, 0, tzinfo=zone),
-            datetime(2026, 10, 24, 13, 0, 0, tzinfo=zone),
-        ])
         output = TtyBuffer()
-        ui = StellivorUI(output=output, use_color=False, clock_fn=lambda: next(moments))
-        ui.width = lambda: 44
-        ui.menu()
-        stop = StopAfterOneTick()
-        ui._live_clock_loop(stop)
-        text = output.getvalue()
-        self.assertIn("12:59:59.5", text)
-        self.assertIn("13:00:00.0", text)
-        self.assertIn("WAT", text)
-        self.assertIn("UTC+01:00", text)
-        self.assertIn("\033[s\033[1A\r", text)
-        self.assertTrue(text.endswith("\033[K\033[u"))
-        self.assertAlmostEqual(stop.delays[0], 0.5)
+        ui = StellivorUI(input_fn=lambda _prompt: "0", output=output, use_color=False)
+        self.assertEqual(ui._menu_input(), "0")
+        self.assertNotIn("\\033[1A", output.getvalue())
 
     def test_theme_presets_are_selectable(self):
         default = StellivorUI(output=io.StringIO(), use_color=True, theme="stellivor")
@@ -327,3 +361,25 @@ class UITests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class SavedWifiKeyDisplayPrivacyTests(unittest.TestCase):
+    @patch("stellivor.ui.saved_profile_key", return_value=("TEST_ONLY_TRANSIENT_KEY", "Available"))
+    @patch("stellivor.ui.saved_profile_names")
+    def test_explicit_reveal_displays_key_but_never_records_or_exports_it(self, profiles, _key):
+        profiles.return_value = Result(
+            "wireless_inspector", "saved_profiles", Status.SUCCESS, "profiles",
+            data={"profiles": ["HomeNet"], "count": 1, "key_material_requested": False},
+        )
+        answers = iter(["1", "y", "0"])
+        output = io.StringIO()
+        ui = StellivorUI(input_fn=lambda _prompt: next(answers), output=output, use_color=False)
+        ui.wireless_security_menu()
+
+        self.assertIn("KEY: TEST_ONLY_TRANSIENT_KEY", output.getvalue())
+        serialized_session = json.dumps([result.to_dict() for result in ui.results])
+        self.assertNotIn("TEST_ONLY_TRANSIENT_KEY", serialized_session)
+
+        from stellivor.reports import build_report
+        report = build_report(ui.results)
+        self.assertNotIn("TEST_ONLY_TRANSIENT_KEY", json.dumps(report))

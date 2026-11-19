@@ -25,6 +25,25 @@ class ReportTests(unittest.TestCase):
         self.assertEqual(report["results"][1]["errors"], ["expected test error"])
         self.assertFalse(report["uploaded"])
 
+    def test_credential_output_is_excluded_from_reports_by_default(self):
+        secret = "alice:Recovered-Local-Password"
+        result = Result("credential_audit", "john_run", Status.SUCCESS, "Completed locally.",
+                        data={"returncode": 0, "output": secret, "mode": "single", "network_used": False})
+        report = build_report([result])
+        serialized = json.dumps(report)
+        self.assertNotIn(secret, serialized)
+        self.assertNotIn('"output"', serialized)
+        self.assertTrue(report["results"][0]["sensitive_output_excluded"])
+        self.assertEqual(report["results"][0]["data"]["mode"], "single")
+
+    def test_credential_output_can_be_explicitly_included_for_private_reports(self):
+        secret = "alice:Recovered-Local-Password"
+        result = Result("credential_audit", "john_show", Status.SUCCESS, "Local results.",
+                        data={"output": secret})
+        report = build_report([result], include_sensitive=True)
+        self.assertIn(secret, json.dumps(report))
+        self.assertTrue(report["sensitive_output_included"])
+
     def test_save_json_and_markdown(self):
         result = save_report(self.results, self.root, stem="test-report")
         self.assertEqual(result.status, Status.SUCCESS)

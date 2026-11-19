@@ -27,6 +27,11 @@ from .security_lab import HARDENING_CHECKLIST, estimate_passphrase_strength
 from .system_info import collect_system_info
 from .tools import discover_tools
 from .wireless import wireless_snapshot
+from .wireless_inspector import (
+    current_connection, inspect_saved_profile, network_configuration,
+    nearby_networks, refresh_wireless_information, saved_profile_names, saved_profile_key,
+)
+from .credential_audit import audit_tool_status, john_information, run_local_audit
 
 
 _OUTLINE_FONT: dict[str, tuple[str, ...]] = {
@@ -135,8 +140,9 @@ class StellivorUI:
         if animate is None:
             animate = is_tty
         self.animate = bool(animate and is_tty)
-        self.live_clock_enabled = self.animate
-        self.pace_results = bool(is_tty if pace_results is None else (pace_results and is_tty))
+        # Avoid cursor-up redraws: they interfere with terminal scrollback on mobile.
+        self.live_clock_enabled = False
+        self.pace_results = bool(pace_results and is_tty)
         self.clock_fn = clock_fn or (lambda: datetime.now().astimezone())
         self.sleep_fn = sleep_fn
         encoding = getattr(self.output, "encoding", None) or "utf-8"
@@ -379,9 +385,7 @@ class StellivorUI:
         self.write()
         self.panel(f"STELLIVOR  /  {adapter}", rows)
         self.write(self._paint(f"  Session results recorded: {len(self.results)}", self.MUTED))
-        if self.animate:
-            action = "pause" if self.live_clock_enabled else "resume"
-            self.write(self._paint(f"  P+Enter {action} clock", self.MUTED))
+        self.write(self._paint("  Scrollback-safe mode  /  menu clock is static", self.MUTED))
         self.write(self._menu_clock_line())
 
     def help_screen(self) -> None:
@@ -391,7 +395,7 @@ class StellivorUI:
             "/         Open the command palette",
             "r         Rerun the last operation",
             "e         Export the current session locally",
-            "p         Pause or resume the live clock",
+            "p         Explain scrollback-safe clock behavior",
             "q         Quit without uploading anything",
             "All diagnostics run only after you choose them; no startup scan is performed.",
         ])
@@ -460,12 +464,18 @@ class StellivorUI:
     def _emit_result_lines(self, lines: list[str]) -> None:
         if not lines:
             return
-        delay = min(0.018, 0.8 / len(lines)) if self.pace_results else 0.0
+        if not self.pace_results:
+            # One write + one flush avoids terminal round-trips for every line.
+            self.output.write("\n".join(lines) + "\n")
+            self.output.flush()
+            return
+
+        # Optional readable reveal for users who prefer the animated presentation.
+        delay = min(0.05, 4.0 / len(lines))
         for line in lines:
             self.output.write(line + "\n")
             self.output.flush()
-            if delay:
-                self.sleep_fn(delay)
+            self.sleep_fn(delay)
 
     def print_result(self, result: Result, *, max_data_characters: int = 10000) -> None:
         lines = [""]
@@ -570,37 +580,177 @@ class StellivorUI:
 
     def wireless_security_menu(self) -> None:
         while self.running:
-            self.panel("WIRELESS SECURITY LAB  /  DEFENSIVE", [
-                "1  Review a permitted wireless snapshot",
-                "2  Estimate a test passphrase (hidden input; never saved)",
-                "3  Router hardening checklist",
-                "4  Safe recovery guidance for your own router",
+            self.panel("WI-FI INSPECTOR  /  WIRELESS & SECURITY", [
+                "1  List saved profiles + reveal locally saved keys",
+                "2  Inspect a saved profile (metadata only)",
+                "3  Scan nearby Wi-Fi networks",
+                "4  Show current Wi-Fi connection",
+                "5  Show adapters, IP configuration and routes",
+                "6  Refresh wireless information",
+                "7  Review current Wi-Fi security",
+                "8  Estimate a test passphrase (hidden input)",
+                "9  Router hardening checklist",
+                "10 Owner recovery guidance",
+                "11 Local credential-audit workbench (John the Ripper)",
                 "0  Back",
             ])
-            choice = self.input_fn("Select: ").strip()
+            choice = self.input_fn("Select: ").strip().lower()
             if choice == "0":
                 return
-            submenu_labels = {"1": "WIRELESS SNAPSHOT", "2": "PASSPHRASE ESTIMATE", "3": "HARDENING CHECKLIST", "4": "OWNER RECOVERY"}
-            if choice in submenu_labels:
-                self._dragon_transition(submenu_labels[choice])
+            labels = {
+                "1": "SAVED WI-FI PROFILES", "2": "PROFILE INSPECTION",
+                "3": "NEARBY WI-FI SCAN", "4": "CURRENT CONNECTION",
+                "5": "NETWORK ADAPTERS", "6": "REFRESH WIRELESS DATA",
+                "7": "WI-FI SECURITY REVIEW", "8": "PASSPHRASE ESTIMATE",
+                "9": "ROUTER HARDENING", "10": "OWNER RECOVERY",
+                "11": "LOCAL CREDENTIAL AUDIT",
+            }
+            if choice in labels:
+                self._dragon_transition(labels[choice])
             if choice == "1":
-                self.record(wireless_snapshot())
+                profiles = saved_profile_names()
+                # Record names/status only. Secret values never enter Results,
+                # session history, or report exports.
+                self.record(profiles)
+                names = profiles.data.get("profiles", []) if profiles.succeeded else []
+                if not names:
+                    self.write("No saved Wi-Fi profiles were returned by this platform.")
+                    continue
+                if self.prompt("Reveal locally stored Wi-Fi keys on this screen? [y/N]").lower() != "y":
+                    self.write("Key reveal cancelled; only profile names were listed.")
+                    continue
+                self.write("LOCAL SAVED WI-FI CREDENTIALS  /  DISPLAY ONLY")
+                for name in names:
+                    key, state = saved_profile_key(name)
+                    if key is None:
+                        self.write(f"  {name}  |  {state}")
+                    else:
+                        self.write(f"  {name}  |  KEY: {key}")
+                        del key
             elif choice == "2":
+                profiles = saved_profile_names()
+                self.record(profiles)
+                names = profiles.data.get("profiles", []) if profiles.succeeded else []
+                if not names:
+                    self.write("No inspectable saved profile names were returned.")
+                    continue
+                for index, name in enumerate(names, 1):
+                    self.write(f"  {index}. {name}")
+                selected = self.prompt("Profile number (or Q to cancel)").lower()
+                if selected == "q":
+                    continue
+                if selected.isdigit() and 1 <= int(selected) <= len(names):
+                    self.record(inspect_saved_profile(names[int(selected) - 1]))
+                else:
+                    self.write("Choose one of the listed profile numbers.")
+            elif choice == "3":
+                self.record(nearby_networks())
+            elif choice == "4":
+                self.record(current_connection())
+            elif choice == "5":
+                self.record(network_configuration())
+            elif choice == "6":
+                self.record(refresh_wireless_information())
+            elif choice == "7":
+                snapshot = wireless_snapshot()
+                self.record(snapshot)
+                self.record(self._wireless_security_assessment(snapshot))
+            elif choice == "8":
                 try:
-                    password = getpass.getpass("Enter a test phrase (input hidden): ")
+                    password = getpass.getpass("Enter a test phrase (input hidden; do not use a real account password): ")
                 except (EOFError, KeyboardInterrupt):
                     self.write("Cancelled; no estimate was recorded.")
                     continue
                 result = estimate_passphrase_strength(password)
                 del password
                 self.record(result)
-            elif choice == "3":
+            elif choice == "9":
                 self.hardening_checklist()
-            elif choice == "4":
+            elif choice == "10":
                 self.recovery_guidance()
+            elif choice == "11":
+                self.credential_audit_menu()
             else:
                 self.write("Choose one of the displayed numbers.")
 
+    def _wireless_security_assessment(self, snapshot: Result) -> Result:
+        """Classify only security fields actually present in adapter output."""
+        sections = snapshot.data.get("sections", {})
+        evidence: list[dict[str, str]] = []
+        for section_name, section in sections.items():
+            data = section.get("data", {}) if isinstance(section, dict) else {}
+            raw = " ".join(str(value) for value in data.values()).lower()
+            if not raw:
+                continue
+            if "wpa3" in raw:
+                level = "WPA3 reported"
+            elif "wpa2" in raw:
+                level = "WPA2 reported"
+            elif "wep" in raw:
+                level = "WEP reported"
+            elif "open" in raw and ("security" in raw or "auth" in raw):
+                level = "Open network may be reported"
+            else:
+                continue
+            evidence.append({"section": section_name, "assessment": level})
+        status = Status.WARNING if evidence else Status.UNSUPPORTED
+        return Result(
+            "wireless_inspector", "security_review", status,
+            "Security hints were derived only from fields returned by the platform; this is not a full router audit.",
+            {"evidence": evidence, "read_only": True, "keys_requested": False},
+            warnings=["Confirm authentication and cipher details in your router's official management interface. Missing fields are unknown, not proof of security."],
+        )
+
+    def credential_audit_menu(self) -> None:
+        while self.running:
+            self.panel("LOCAL CREDENTIAL AUDIT  /  AUTHORIZED HASH FILES", [
+                "1  Check John the Ripper / Hashcat availability",
+                "2  John quick help",
+                "3  John build information",
+                "4  List supported John formats",
+                "5  Single mode on a local authorized hash file",
+                "6  Wordlist mode on a local authorized hash file",
+                "7  Wordlist + rules mode",
+                "8  Show recovered results from a local hash file",
+                "9  Check named John session status",
+                "10 Resume named John session",
+                "Q  Back",
+            ])
+            choice = self.input_fn("Select: ").strip().lower()
+            if choice == "q":
+                return
+            if choice == "1":
+                self.record(audit_tool_status())
+                continue
+            if choice in {"2", "3", "4"}:
+                action = {"2": "help", "3": "build", "4": "formats"}[choice]
+                self.record(john_information(action))
+                continue
+            if choice in {"5", "6", "7"}:
+                mode = {"5": "single", "6": "wordlist", "7": "rules"}[choice]
+                hash_file = self.prompt("Path to your local authorized hash file")
+                wordlist = self.prompt("Path to local wordlist") if mode in {"wordlist", "rules"} else None
+                session = self.prompt("Session name (letters/numbers/_/-; optional)")
+                if not self.prompt("Confirm you own or have explicit permission to audit this hash file [y/N]").lower() == "y":
+                    self.write("Cancelled. No audit was started.")
+                    continue
+                self.record(run_local_audit(mode, hash_file, wordlist=wordlist or None,
+                                            session=session or None, authorized=True))
+                continue
+            if choice == "8":
+                hash_file = self.prompt("Path to the same local authorized hash file")
+                self.record(john_information("show", hash_file=hash_file))
+            elif choice == "9":
+                session = self.prompt("Saved session name")
+                self.record(john_information("status", session=session))
+            elif choice == "10":
+                session = self.prompt("Saved session name to resume")
+                if self.prompt("Resume this local John session [y/N]").lower() == "y":
+                    self.record(john_information("resume", session=session))
+                else:
+                    self.write("Resume cancelled.")
+            else:
+                self.write("Choose one of the displayed options.")
     def hardening_checklist(self) -> None:
         checked: set[int] = set()
         while True:
@@ -636,7 +786,7 @@ class StellivorUI:
                 "Contact the ISP or router manufacturer using official support.",
                 "If necessary, reset your own router and set a new unique passphrase.",
             ], "nearby_network_passwords_retrieved": False, "saved_keys_extracted": False},
-            warnings=["A nearby-network scan cannot reveal a network's password. Stellivor never extracts saved Wi-Fi keys."],
+            warnings=["A nearby-network scan cannot reveal passwords for networks that are not saved on this device."],
         ))
 
     def quick_local_audit(self) -> None:
@@ -652,8 +802,20 @@ class StellivorUI:
             self.write("No session results to export yet.")
             return
         self.write(PRIVACY_NOTICE)
+        has_credential_output = any(
+            result.module == "credential_audit"
+            and isinstance(result.data, dict)
+            and any(key in result.data for key in ("output", "stdout", "stderr"))
+            for result in self.results
+        )
+        include_sensitive = False
+        if has_credential_output:
+            self.write("John output can contain recovered credentials. It is excluded from reports by default.")
+            include_sensitive = self.prompt(
+                "Include that sensitive output in this private local report? [y/N]"
+            ).lower() == "y"
         directory = self.prompt("Local report directory", str(Path.cwd() / "reports"))
-        self.print_result(save_report(self.results, directory))
+        self.print_result(save_report(self.results, directory, include_sensitive=include_sensitive))
 
     def dispatch(self, choice: str) -> None:
         if choice == "0":
@@ -719,12 +881,7 @@ class StellivorUI:
                     self.running = False
                     continue
                 if normalized == "p":
-                    if self.animate:
-                        self.live_clock_enabled = not self.live_clock_enabled
-                        state = "paused; periodic terminal writes stopped" if not self.live_clock_enabled else "resumed"
-                        self.write(self._paint(f"Live clock {state}.", self.MUTED))
-                    else:
-                        self.write("Clock animation is disabled in this mode.")
+                    self.write("The menu clock is intentionally static so terminal scrollback remains usable.")
                     continue
                 self.dispatch(choice.strip())
             except (EOFError, KeyboardInterrupt):

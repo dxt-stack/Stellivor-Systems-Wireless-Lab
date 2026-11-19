@@ -1,7 +1,7 @@
 # STELLIVOR // SYSTEMS & WIRELESS LAB — PROJECT HANDOVER
 
 **Current release:** 0.6.0  
-**Project status:** Implemented, packaged, and locally tested. The 0.5.3 live-clock ticking and brighter emblem have not yet been visually confirmed on the user's Termux device.
+**Project status:** Implemented and covered by deterministic tests. Real-device validation remains platform-specific; mocked tests do not establish native Windows/Linux behavior.
 
 ## Purpose
 
@@ -20,7 +20,7 @@ STELLIVOR is a dependency-light, offline-first workbench for local system diagno
 
 ## Wireless Inspector reuse and limits
 
-Reviewed safe concepts from the supplied WiFi Inspector project were incorporated: wireless status, defensive security guidance, a hardening checklist, local test-phrase estimation, and safe owner recovery guidance. Saved Wi-Fi key extraction, password cracking, handshake capture, backdoors, and unauthorized attack features are not included. A wireless snapshot does not reveal network passwords.
+Reviewed safe concepts from the supplied WiFi Inspector project were incorporated: wireless status, defensive security guidance, a hardening checklist, local test-phrase estimation, and safe owner recovery guidance. An explicit local saved-profile action displays Wi-Fi keys already stored by Windows WLAN or Linux NetworkManager where permissions permit. Keys are transient and excluded from Result objects, session history, logs, and report exports. Android/Termux restricts access to saved Wi-Fi credentials; macOS retrieval is not implemented. This is not nearby-network password discovery. Handshake capture, network hash harvesting, remote credential attempts, backdoors, and unauthorized attack features are not included.
 
 ## Operational and privacy boundaries
 
@@ -41,7 +41,7 @@ python main.py --theme ember
 python main.py --fast-output --no-animation
 ```
 
-The 0.6.0 release extends the deterministic suite with ADB parsing and CLI checks. Workspace QA covers the current CLI, non-interactive behavior, and terminal animation with controlled clocks/fake TTYs; a pseudo-terminal check observed real per-second ticks and confirmed that the pause control stops further writes. The new release still needs on-device visual confirmation in Termux.
+The 0.6.0 release extends the deterministic suite with ADB parsing and CLI checks. Workspace QA covers the current CLI, non-interactive behavior, and terminal animation with controlled clocks/fake TTYs; a pseudo-terminal check observed real per-second ticks and confirmed that the pause control stops further writes. The current release still needs on-device visual confirmation in Termux.
 
 ## Project layout
 
@@ -51,4 +51,4 @@ The 0.6.0 release extends the deterministic suite with ADB parsing and CLI check
 - `docs/` — architecture, testing, security, platform support, and roadmap.
 - `README.md` — current user documentation and setup instructions.
 
-The release archive and SHA-256 file are `STELLIVOR-Systems-Wireless-Lab-0.5.3.zip` and `STELLIVOR-Systems-Wireless-Lab-0.5.3.zip.sha256`. The established private Dropbox destination is `/r/`; no public share link is authorized.
+Release archives and checksum files should be generated from a clean checkout, verified after extraction, and distributed only through an explicitly approved release channel. Never publish local diagnostic reports, hash files, wordlists, credential-audit outputs, or device inventories.
