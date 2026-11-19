@@ -779,8 +779,20 @@ class StellivorUI:
             self.write("No session results to export yet.")
             return
         self.write(PRIVACY_NOTICE)
+        has_credential_output = any(
+            result.module == "credential_audit"
+            and isinstance(result.data, dict)
+            and any(key in result.data for key in ("output", "stdout", "stderr"))
+            for result in self.results
+        )
+        include_sensitive = False
+        if has_credential_output:
+            self.write("John output can contain recovered credentials. It is excluded from reports by default.")
+            include_sensitive = self.prompt(
+                "Include that sensitive output in this private local report? [y/N]"
+            ).lower() == "y"
         directory = self.prompt("Local report directory", str(Path.cwd() / "reports"))
-        self.print_result(save_report(self.results, directory))
+        self.print_result(save_report(self.results, directory, include_sensitive=include_sensitive))
 
     def dispatch(self, choice: str) -> None:
         if choice == "0":
