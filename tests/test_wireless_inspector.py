@@ -4,7 +4,7 @@ from unittest.mock import patch
 from stellivor.core import PlatformInfo, Result, Status
 from stellivor.wireless_inspector import (
     current_connection, inspect_saved_profile, network_configuration,
-    refresh_wireless_information, saved_profile_names,
+    refresh_wireless_information, saved_profile_names, saved_profile_key,
 )
 
 
@@ -104,6 +104,32 @@ class TermuxConnectionStateTests(unittest.TestCase):
         self.assertNotIn("stdout", result.data)
         self.assertTrue(result.errors)
 
+
+    @patch("stellivor.wireless_inspector.run_command")
+    def test_windows_key_parser_returns_only_parsed_key(self, command):
+        command.return_value = Result(
+            "wireless_inspector", "saved_profile_key", Status.SUCCESS, "ok",
+            data={"stdout": "Profile HomeNet\\n    Key Content            :  local-test-key\\n"},
+        )
+        key, state = saved_profile_key("HomeNet", PlatformInfo("windows", "Windows"))
+        self.assertEqual(key, "local-test-key")
+        self.assertEqual(state, "Available")
+        self.assertIn("key=clear", command.call_args.args[0])
+
+    @patch("stellivor.wireless_inspector.run_command")
+    def test_linux_key_is_returned_transiently(self, command):
+        command.return_value = Result(
+            "wireless_inspector", "saved_profile_key", Status.SUCCESS, "ok",
+            data={"stdout": "local-test-key\\n"},
+        )
+        key, state = saved_profile_key("HomeNet", PlatformInfo("linux", "Linux"))
+        self.assertEqual((key, state), ("local-test-key", "Available"))
+        self.assertIn("--show-secrets", command.call_args.args[0])
+
+    def test_android_does_not_attempt_saved_key_access(self):
+        key, state = saved_profile_key("HomeNet", PlatformInfo("termux", "Linux", True, True))
+        self.assertIsNone(key)
+        self.assertIn("restricts access", state)
 
 if __name__ == "__main__":
     unittest.main()
