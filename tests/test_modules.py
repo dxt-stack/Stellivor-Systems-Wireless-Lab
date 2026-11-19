@@ -361,3 +361,25 @@ class UITests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class SavedWifiKeyDisplayPrivacyTests(unittest.TestCase):
+    @patch("stellivor.ui.saved_profile_key", return_value=("TEST_ONLY_TRANSIENT_KEY", "Available"))
+    @patch("stellivor.ui.saved_profile_names")
+    def test_explicit_reveal_displays_key_but_never_records_or_exports_it(self, profiles, _key):
+        profiles.return_value = Result(
+            "wireless_inspector", "saved_profiles", Status.SUCCESS, "profiles",
+            data={"profiles": ["HomeNet"], "count": 1, "key_material_requested": False},
+        )
+        answers = iter(["1", "y", "0"])
+        output = io.StringIO()
+        ui = StellivorUI(input_fn=lambda _prompt: next(answers), output=output, use_color=False)
+        ui.wireless_security_menu()
+
+        self.assertIn("KEY: TEST_ONLY_TRANSIENT_KEY", output.getvalue())
+        serialized_session = json.dumps([result.to_dict() for result in ui.results])
+        self.assertNotIn("TEST_ONLY_TRANSIENT_KEY", serialized_session)
+
+        from stellivor.reports import build_report
+        report = build_report(ui.results)
+        self.assertNotIn("TEST_ONLY_TRANSIENT_KEY", json.dumps(report))
