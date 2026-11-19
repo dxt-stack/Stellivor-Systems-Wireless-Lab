@@ -1,7 +1,7 @@
-"""Expanded, read-only Wi-Fi and network inspection adapters.
+"""Local Wi-Fi and network inspection adapters.
 
-This module reuses the source Wi-Fi Inspector's useful inspection workflows
-inside STELLIVOR's Result/status architecture. It never requests Wi-Fi keys.
+Saved-key retrieval is a deliberate, local-only operation. Secret values are
+returned only to the interactive caller and must never be put in Result objects.
 """
 from __future__ import annotations
 
@@ -34,7 +34,7 @@ def saved_profile_names(info: PlatformInfo | None = None) -> Result:
             result.data["profiles"] = list(dict.fromkeys(names))
             result.data["count"] = len(result.data["profiles"])
             result.data["key_material_requested"] = False
-            result.warnings.append("Only saved profile names are listed. Wi-Fi keys are never requested.")
+            result.warnings.append("Profile names only; use the interactive reveal action to request a locally stored key.")
             return result
         return result
     if info.name == "linux":
@@ -47,7 +47,7 @@ def saved_profile_names(info: PlatformInfo | None = None) -> Result:
                 if len(fields) >= 2 and fields[-1] == "802-11-wireless":
                     profiles.append(":".join(fields[:-1]))
             result.data.update(profiles=profiles, count=len(profiles), key_material_requested=False)
-            result.warnings.append("Only NetworkManager profile names are listed; no secrets are requested.")
+            result.warnings.append("Profile names only; use the interactive reveal action to request a locally stored key.")
         return result
     if info.name in {"termux", "android"}:
         return _result("wireless_inspector", "saved_profiles", Status.UNSUPPORTED,
@@ -57,6 +57,51 @@ def saved_profile_names(info: PlatformInfo | None = None) -> Result:
                    "Saved Wi-Fi profile listing is unsupported on this platform.",
                    {"platform": info.label, "key_material_requested": False})
 
+
+
+def saved_profile_key(profile: str, info: PlatformInfo | None = None) -> tuple[str | None, str]:
+    """Return one locally stored Wi-Fi key and a status; never create a Result.
+
+    The returned key is transient secret material. Callers must display it
+    directly and must not log, serialize, record, or export it.
+    """
+    info = info or detect_platform()
+    name = profile.strip()
+    if not name or len(name) > 128 or any(ord(c) < 32 for c in name):
+        return None, "Invalid profile name"
+    if info.name == "windows":
+        result = run_command(
+            ["netsh", "wlan", "show", "profile", f"name={name}", "key=clear"],
+            module="wireless_inspector", operation="saved_profile_key", timeout=12,
+        )
+        if not result.succeeded:
+            return None, "Access denied" if result.status == Status.PERMISSION_RESTRICTED else "Key unavailable"
+        for line in result.data.get("stdout", "").splitlines():
+            match = re.match(r"^\\s*Key Content\\s*:\\s*(.*?)\\s*$", line, re.IGNORECASE)
+            if match and match.group(1):
+                return match.group(1), "Available"
+        return None, "No stored key (open network, enterprise auth, or localized output)"
+    if info.name == "linux":
+        result = run_command(
+            ["nmcli", "--show-secrets", "-g", "802-11-wireless-security.psk",
+             "connection", "show", name],
+            module="wireless_inspector", operation="saved_profile_key", timeout=12,
+        )
+        if not result.succeeded:
+            if result.status == Status.PERMISSION_RESTRICTED:
+                return None, "Permission denied"
+            if result.status == Status.DEPENDENCY_MISSING:
+                return None, "NetworkManager (nmcli) unavailable"
+            return None, "Key unavailable"
+        key = result.data.get("stdout", "").strip()
+        if key and key not in {"--", "(none)"}:
+            return key, "Available"
+        return None, "No stored PSK (open or enterprise profile)"
+    if info.name in {"termux", "android"}:
+        return None, "Android restricts access to saved Wi-Fi credentials"
+    if info.name == "macos":
+        return None, "macOS Keychain adapter not implemented yet"
+    return None, "Unsupported platform"
 
 def inspect_saved_profile(profile: str, info: PlatformInfo | None = None) -> Result:
     """Inspect non-secret metadata for one named profile."""
