@@ -109,7 +109,7 @@ class TermuxConnectionStateTests(unittest.TestCase):
     def test_windows_key_parser_returns_only_parsed_key(self, command):
         command.return_value = Result(
             "wireless_inspector", "saved_profile_key", Status.SUCCESS, "ok",
-            data={"stdout": "Profile HomeNet\\n    Key Content            :  local-test-key\\n"},
+            data={"stdout": "Profile HomeNet\n    Key Content            :  local-test-key\n"},
         )
         key, state = saved_profile_key("HomeNet", PlatformInfo("windows", "Windows"))
         self.assertEqual(key, "local-test-key")
@@ -120,7 +120,7 @@ class TermuxConnectionStateTests(unittest.TestCase):
     def test_linux_key_is_returned_transiently(self, command):
         command.return_value = Result(
             "wireless_inspector", "saved_profile_key", Status.SUCCESS, "ok",
-            data={"stdout": "local-test-key\\n"},
+            data={"stdout": "local-test-key\n"},
         )
         key, state = saved_profile_key("HomeNet", PlatformInfo("linux", "Linux"))
         self.assertEqual((key, state), ("local-test-key", "Available"))
