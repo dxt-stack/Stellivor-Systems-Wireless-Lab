@@ -32,7 +32,7 @@ The current implementation includes:
 
 ### Reviewed WiFi Inspector reuse
 
-Safe concepts from the user-supplied WiFi Inspector archive were incorporated: wireless status, defensive security guidance, a hardening checklist, local test-phrase estimation, and owner recovery guidance. Do not add saved Wi-Fi key extraction, password cracking, handshake capture, credential capture, backdoors, exploit menus, or unauthorized attack features. A wireless scan cannot reveal a network password.
+Safe concepts from the user-supplied WiFi Inspector archive were incorporated: wireless status, defensive security guidance, a hardening checklist, local test-phrase estimation, and owner recovery guidance. An explicit local action may display keys already stored in Windows WLAN or Linux NetworkManager profiles when permissions allow. Keep returned key values transient: never put them in Result objects, session history, logs, tests with real secrets, or report exports. Android/Termux restricts access to saved credentials; macOS retrieval is not implemented. This is not nearby-network password discovery. Do not add handshake capture, network hash harvesting, remote credential attempts, backdoors, exploit menus, or unauthorized attack features.
 
 ## UI behavior and acceptance requirements
 
@@ -46,7 +46,7 @@ Safe concepts from the user-supplied WiFi Inspector archive were incorporated: w
 ## Safety, privacy, and engineering constraints
 
 - Offline-first; no telemetry, background uploads, cloud analysis, or automatic sharing.
-- No root requirement, credential capture, saved-key extraction, password cracking, backdoors, or exploit/attack workflows.
+- No root requirement, credential capture, handshake capture, network hash harvesting, remote credential attempts, password cracking, backdoors, or exploit/attack workflows. Explicit local display of already-saved Windows/Linux Wi-Fi keys is permitted only under the transient-display rules above.
 - No automatic package installation or configuration changes. Optional native utilities are detected, not installed.
 - No archive code execution. File inspection is read-only.
 - Use subprocess argument arrays (`shell=False`), bounded output, and timeouts. Keep network operations user-selected and bounded.
