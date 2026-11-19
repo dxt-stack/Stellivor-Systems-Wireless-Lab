@@ -2,7 +2,7 @@
 
 STELLIVOR reports local capabilities honestly. Mocked adapter tests do not establish real-device support.
 
-## Version 0.5.3 validation in this workspace
+## Recorded workspace validation (0.5.3 baseline)
 
 | Check | Result |
 |---|---|
@@ -24,15 +24,15 @@ Workspace checks are not device checks.
 
 ## Android / Termux
 
-The user supplied a screenshot confirming **STELLIVOR 0.4.0** running in Android/Termux with Python 3.14.8; the landing menu and result/theme refinements were positively reviewed. **Version 0.5.3 has not yet been confirmed on that phone.** The live clock, pause-for-scrollback control, and brighter emblem need on-device visual validation; this QA workspace cannot substitute for that check.
+An earlier STELLIVOR release was demonstrated in Android/Termux. The current 0.6.0 release and its Wi-Fi Inspector integration still require current-version on-device validation; workspace and mocked tests cannot substitute for that check.
 
 Android is detected separately from desktop Linux. Wireless visibility may require an already configured Termux:API package/app and Android permissions; Android can still restrict results. Battery status may likewise be unavailable without the compatible Termux:API components. STELLIVOR does not install packages automatically, and does not expose saved Wi-Fi keys through Android/Termux. Saved-profile key display is supported through native Windows WLAN commands and Linux NetworkManager when permissions and profile configuration allow it; macOS retrieval is not implemented. Key display is an explicit local action and keys are not stored in results or exports.
 
 ## Other platforms
 
 - Linux: core suite and selected adapters tested in the listed workspace; other distributions/locales still need validation.
-- Windows: platform parsing is covered with mocks; real Windows native commands and UI remain untested for 0.5.3.
-- macOS: platform detection is covered with mocks; real native commands and UI remain untested for 0.5.3.
+- Windows: platform parsing is covered with mocks; real Windows native commands and UI remain untested for the current release.
+- macOS: platform detection is covered with mocks; real native commands and UI remain untested for the current release.
 - SDR hardware: no live hardware adapter is implemented or claimed.
 
 Only mark an adapter as validated after it is exercised on its actual OS and capability, with its limitations documented.
