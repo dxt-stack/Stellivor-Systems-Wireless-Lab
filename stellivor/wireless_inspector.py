@@ -135,7 +135,8 @@ def refresh_wireless_information(info: PlatformInfo | None = None) -> Result:
     profiles = saved_profile_names(info)
     nearby = nearby_networks(info)
     active = current_connection(info)
-    successes = sum(item.succeeded for item in (profiles, nearby, active))
+    usable = {Status.SUCCESS, Status.SIMULATION, Status.WARNING}
+    successes = sum(item.status in usable for item in (profiles, nearby, active))
     status = Status.SUCCESS if successes == 3 else Status.WARNING if successes else Status.FAILURE
     return _result("wireless_inspector", "refresh", status,
                    f"Refresh completed: {successes}/3 sections returned usable data.",
