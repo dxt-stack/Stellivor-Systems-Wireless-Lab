@@ -74,6 +74,8 @@ Platform limitations are explicit: Windows uses native WLAN commands; Linux uses
 
 **Safety boundary:** STELLIVOR never extracts Wi-Fi keys (key=clear), captures handshakes, harvests hashes from networks/devices, or sends credential material to a service. John operates only on a local hash file and optional local wordlist that you supply and are authorized to audit. Hash files, John session files, john.pot, and recovered results are sensitive; keep them private. Tool detection does not install or validate tools.
 
+John's recovered-result output remains available locally in the operator's terminal/session; this functionality is not removed or suppressed. JSON/Markdown report exports exclude credential-audit stdout/stderr by default while preserving the other audit metadata. The interactive export flow asks before including that sensitive output in a private report. Never commit hash files, pot/session files, recovered credentials, or sensitive reports. See [`SECURITY.md`](SECURITY.md).
+
 ## Run on Android / Termux
 
 Python **3.10+** is required; the core is standard-library only. For a ZIP in Android Downloads, make sure Termux storage access has already been set up, then:
