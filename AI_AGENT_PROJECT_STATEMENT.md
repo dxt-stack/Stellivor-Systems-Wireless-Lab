@@ -81,15 +81,15 @@ printf '0\n' | python main.py --no-color --no-animation
 
 Current release QA recorded **75 passing deterministic tests**. It also passed direct JSON CLI/system/menu smoke checks and a pseudo-terminal test confirming: (1) the clock ticks in real time, (2) pausing causes no terminal writes during the measured wait, and (3) resuming restores the ticker. The test workspace was Linux; pseudo-terminal tests are not a substitute for actual Termux visual testing.
 
-A user screenshot confirms **0.4.0** ran in Android/Termux with Python 3.14.8. The 0.6.0 shell shortcuts and ADB readiness check have not yet been visually confirmed on that phone. Never describe this release as device-tested until the user confirms it.
+Android/Termux compatibility has been demonstrated for an earlier release, but the current release's shell shortcuts and ADB readiness check still require validation on a real device. Never describe a release as device-tested until the current version has been exercised on that platform.
 
 ## Release artifacts and handoff
 
 - ZIP: `STELLIVOR-Systems-Wireless-Lab-0.5.3.zip`
 - Checksum: `STELLIVOR-Systems-Wireless-Lab-0.5.3.zip.sha256`
-- The established Dropbox destination is private folder `/r/`. Private uploads are authorized by the user; **do not create a public/shared link**.
+- Publish release artifacts only through an explicitly approved project release channel; do not include private diagnostic data or credentials.
 - Exclude `__pycache__`, `.pyc`, virtual environments, credentials, and build artifacts from release ZIPs. Include the source, tests, README, docs, and project statement.
-- Before publishing any next release: update version/changelog/README/testing/platform docs, run the full suite and CLI smoke checks, create the ZIP, extract it into a clean directory, rerun tests and smoke checks from the extraction, verify the checksum, then upload only to private `/r/` and compare remote content hashes to local files.
+- Before publishing any next release: update version/changelog/README/testing/platform docs, run the full suite and CLI smoke checks, create the ZIP, extract it into a clean directory, rerun tests and smoke checks from the extraction, verify the checksum, then upload only to the release destination explicitly approved by the project maintainer and compare remote content hashes to local files.
 - Preserve version history; use a new patch version for behavior changes and revision-checked replacement only for a correction to an already-private artifact with the same release version.
 
 ## Suggested next work
