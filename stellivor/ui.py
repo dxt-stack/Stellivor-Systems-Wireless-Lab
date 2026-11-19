@@ -135,7 +135,8 @@ class StellivorUI:
         if animate is None:
             animate = is_tty
         self.animate = bool(animate and is_tty)
-        self.live_clock_enabled = self.animate
+        # Avoid cursor-up redraws: they interfere with terminal scrollback on mobile.
+        self.live_clock_enabled = False
         self.pace_results = bool(is_tty if pace_results is None else (pace_results and is_tty))
         self.clock_fn = clock_fn or (lambda: datetime.now().astimezone())
         self.sleep_fn = sleep_fn
@@ -379,9 +380,7 @@ class StellivorUI:
         self.write()
         self.panel(f"STELLIVOR  /  {adapter}", rows)
         self.write(self._paint(f"  Session results recorded: {len(self.results)}", self.MUTED))
-        if self.animate:
-            action = "pause" if self.live_clock_enabled else "resume"
-            self.write(self._paint(f"  P+Enter {action} clock", self.MUTED))
+        self.write(self._paint("  Scrollback-safe mode  /  menu clock is static", self.MUTED))
         self.write(self._menu_clock_line())
 
     def help_screen(self) -> None:
@@ -391,7 +390,7 @@ class StellivorUI:
             "/         Open the command palette",
             "r         Rerun the last operation",
             "e         Export the current session locally",
-            "p         Pause or resume the live clock",
+            "p         Explain scrollback-safe clock behavior",
             "q         Quit without uploading anything",
             "All diagnostics run only after you choose them; no startup scan is performed.",
         ])
@@ -460,7 +459,8 @@ class StellivorUI:
     def _emit_result_lines(self, lines: list[str]) -> None:
         if not lines:
             return
-        delay = min(0.018, 0.8 / len(lines)) if self.pace_results else 0.0
+        # Slow interactive reveal enough to read on a phone, but cap total delay.
+        delay = min(0.05, 4.0 / len(lines)) if self.pace_results else 0.0
         for line in lines:
             self.output.write(line + "\n")
             self.output.flush()
@@ -719,12 +719,7 @@ class StellivorUI:
                     self.running = False
                     continue
                 if normalized == "p":
-                    if self.animate:
-                        self.live_clock_enabled = not self.live_clock_enabled
-                        state = "paused; periodic terminal writes stopped" if not self.live_clock_enabled else "resumed"
-                        self.write(self._paint(f"Live clock {state}.", self.MUTED))
-                    else:
-                        self.write("Clock animation is disabled in this mode.")
+                    self.write("The menu clock is intentionally static so terminal scrollback remains usable.")
                     continue
                 self.dispatch(choice.strip())
             except (EOFError, KeyboardInterrupt):
