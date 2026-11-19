@@ -1,15 +1,14 @@
 # Roadmap
 
-Features move to complete only after implementation and appropriate platform testing.
+Features move to complete only after implementation and appropriate platform testing. The current baseline is STELLIVOR 0.6.0; the repository's deterministic suite passes in CI on Python 3.10–3.13, and the maintainer has reported 101 passing tests in Termux.
 
-## Next: real-device visual validation of 0.5.3
+## Next: finish current-version device validation
 
-- Verify the per-second live local clock, timezone/UTC offset, brighter dragon-and-star terminal emblem, `P` pause/resume behavior for scrollback, and selection transition on the user's Android/Termux terminal.
-- Record the exact Termux/Python versions and terminal width/encoding if UI issues appear.
-- Confirm the new cues remain brief and do not suggest scans or diagnostics ran automatically.
-- Recheck file inspection, SHA-256, local reports, and simulated SDR only if needed; these features are unchanged from the user-confirmed 0.4.0 build.
-- Test DNS/TCP or wireless visibility only if the user chooses and the relevant components/permissions are already available.
-- Validate Windows adapters separately; no cross-platform claim should be inferred from mocks.
+- Verify the 0.6.0 terminal layout, startup clock, selection cue, themes, command palette, and direct CLI commands on the maintainer's Android/Termux device.
+- Record exact Termux/Python versions and terminal width/encoding if UI issues appear.
+- Exercise Termux:API battery and Wi-Fi operations only when the optional app/package and Android permissions are already configured; record unsupported or permission-limited behavior honestly.
+- Check ADB readiness with a device already authorized through Android's normal developer settings; do not attempt to bypass authorization.
+- Validate Windows and macOS native adapters separately; mocked tests and Linux CI do not establish native support.
 
 ## Core improvements
 
@@ -27,4 +26,8 @@ Features move to complete only after implementation and appropriate platform tes
 - Stabilize the shared API before considering a desktop GUI or native Android app.
 - Design a plugin trust boundary before permitting third-party plugin execution.
 
-The predecessor WiFi Inspector is not wholesale-migrated. Only reviewed safe concepts were reused; saved-key extraction and password-cracking features remain excluded.
+## Security and documentation maintenance
+
+- Keep the actual behavior of saved Wi-Fi key display and the local John workbench accurately described across the README, architecture, security, and handover documents.
+- Preserve the transient-display and report-exclusion protections for saved keys and credential-audit output.
+- Do not imply Hashcat execution: current code only checks whether the Hashcat executable is present.
