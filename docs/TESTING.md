@@ -17,7 +17,7 @@ The deterministic suite covers:
 - synthetic IQ generation, RMS, FFT bins, reproducible noise, finite-value validation, and invalid parameters;
 - report generation, error/limitation preservation, privacy notices, and local JSON/Markdown writes;
 - hostname validation and mocked DNS/TCP outcomes without external network access;
-- representative Linux and Termux wireless adapter parsing with mocked commands, not real radio scans; saved-profile listing and inspection safeguards, refresh aggregation, and interface/route partial-status preservation;
+- representative Linux and Termux wireless adapter parsing with mocked commands, not real radio scans; saved-profile listing and inspection safeguards, Android disconnected-versus-associated Wi-Fi state classification, raw Termux response redaction, refresh aggregation, and interface/route partial-status preservation;
 - local credential-audit tool discovery, explicit authorization gates, hash/wordlist path validation, safe argument-array invocation, and session naming;
 - local passphrase-estimator behavior, no-secret-return guarantee, and hardening checklist;
 - tool-discovery semantics; brighter true-colour emblem, outlined/ASCII wordmark, startup clock animation with timezone/offset and a static scrollback-safe menu clock, progressive selection-label reveal before content with a bounded dragon cue, non-TTY immediacy, narrow-panel wrapping, and the read-only quick-audit bundle; filtered Termux battery data;
@@ -48,7 +48,7 @@ Expected: version is `STELLIVOR 0.6.0`; the noninteractive menu exits cleanly; s
 6. Export a local JSON/Markdown report and inspect it before sharing.
 7. Check interface/route/listener visibility; record unavailable commands or permissions.
 8. Perform DNS/TCP only if desired and only against an authorized endpoint.
-9. Try Wi-Fi Inspector profile names, current connection, nearby scan, and refresh; Termux:API and Android permissions may be required. Saved profiles are unsupported on Android.
+9. Try Wi-Fi Inspector profile names, current connection, nearby scan, and refresh; Termux:API and Android permissions may be required. Saved profiles are unsupported on Android. A successful API process with `<unknown ssid>`, `0.0.0.0`, and `UNINITIALIZED` must be reported as a warning (no active Wi-Fi association), not as an active connection. Raw Termux connection JSON is discarded after parsing so device MAC fields are not serialized.
 10. Check the local credential-audit tool catalog. Do not run a John audit unless you have a local hash file you own or are explicitly authorized to assess; never share hash/pot/session files or recovered output.
 
 ## Cross-platform status
